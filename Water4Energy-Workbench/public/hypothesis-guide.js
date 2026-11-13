@@ -43,7 +43,7 @@
   ].map(step=>Object.freeze(step)));
   const escapeHTML=value=>String(value ?? '').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   let options=null,root=null,selectedId='ledger',researchSources=[],caseFigures=[],conversationFigures=[];
-  let following=true,lastActualStage=null,turnStatus='Waiting for conversation',lastToolEvent=null,galleryRequested=false,gallerySignature=null,activeFigureKey=null;
+  let following=true,lastActualStage=null,turnStatus='Waiting for conversation',lastToolEvent=null,galleryRequested=false,gallerySignature=null,activeFigureKey=null,lastDisplayedFigureKey=null;
   const toolCalls=new Map();
 
   function matchesCase(definition) {
@@ -109,7 +109,12 @@
     return entries.filter(entry=>{
       if(!entry || !RASTER.test(entry.name) || !scopedURL(entry.name,entry.url,true) || !scopedURL(entry.name,entry.downloadUrl) || seen.has(entry.name))return false;
       seen.add(entry.name);return true;
-    }).map(entry=>({name:entry.name,url:entry.url,downloadUrl:entry.downloadUrl}));
+    }).map(entry=>{
+      const figure={name:entry.name,url:entry.url,downloadUrl:entry.downloadUrl};
+      if(typeof entry.displayId==='string' && entry.displayId.length<=384 && !/[\u0000-\u001f\u007f]/.test(entry.displayId))figure.displayId=entry.displayId;
+      if(typeof entry.shownAt==='string' && entry.shownAt.length<=64 && Number.isFinite(Date.parse(entry.shownAt)))figure.shownAt=new Date(entry.shownAt).toISOString();
+      return figure;
+    });
   }
   function structuredArguments(event) {
     let args=event?.part?.args ?? event?.part?.arguments ?? event?.args ?? event?.arguments;
@@ -194,6 +199,7 @@
     following=true;
     if(lastActualStage && selectedId!==lastActualStage){selectedId=lastActualStage;renderDetail(true);}
     if(lastActualStage==='evidence')collapseWorkflow();
+    if(lastDisplayedFigureKey){activeFigureKey=lastDisplayedFigureKey;renderGallery();}
     renderFollowing();
   }
   function galleryEntries() {
@@ -225,7 +231,9 @@
     const countButton=root.querySelector('[data-guide-figure-count]');
     if(countButton){countButton.hidden=!count;countButton.textContent=count+' figure'+(count===1?'':'s');}
     if(!items.some(item=>figureKey(item.figure,item.checked)===activeFigureKey))activeFigureKey=count?figureKey(items[0].figure,items[0].checked):null;
-    const signature=JSON.stringify({groups,activeFigureKey,requested:galleryRequested});
+    // Display identity drives following, not image markup. Redisplaying the
+    // same already-focused file need not rebuild its image or steal scroll.
+    const signature=JSON.stringify({groups:{cases:groups.cases,conversation:groups.conversation.map(({name,url,downloadUrl})=>({name,url,downloadUrl}))},activeFigureKey,requested:galleryRequested});
     if(!force && signature===gallerySignature)return;
     gallerySignature=signature;container.hidden=false;
     if(!count){container.innerHTML='<div class="evidence-empty"><h3>Awaiting saved figures</h3><p>Figures load from the selected VISTA project. Experiment records and source files appear below when available.</p></div><div data-guide-expanded hidden></div>';return;}
@@ -246,10 +254,17 @@
     return caseFigures.length;
   }
   function setConversationFigures(entries) {
-    const before=new Set(conversationFigures.map(figure=>figure.name+'\n'+figure.url));
+    const identity=figure=>figure.name+'\n'+figure.url+'\n'+(figure.displayId || figure.shownAt || '');
+    const before=new Set(conversationFigures.map(identity));
     conversationFigures=validatedConversationFigures(entries,options?.caseDefinition);
-    const added=conversationFigures.filter(figure=>!before.has(figure.name+'\n'+figure.url) && !caseFigures.some(item=>item.figure===figure.name));
-    if(following && added.length){activeFigureKey=figureKey(added[added.length-1],false);collapseWorkflow();}
+    const added=conversationFigures.filter(figure=>!before.has(identity(figure)));
+    if(added.length){
+      const latest=added[added.length-1],checked=caseFigures.find(item=>item.figure===latest.name);
+      lastDisplayedFigureKey=figureKey(checked || latest,Boolean(checked));
+      // A successful display of a manifest image selects its checked case
+      // card, retaining the source JSON and scientific metadata.
+      if(following){activeFigureKey=lastDisplayedFigureKey;collapseWorkflow();}
+    }
     renderGallery();
     return conversationFigures.length;
   }
@@ -259,7 +274,7 @@
     container?.focus?.({preventScroll:true});container?.scrollIntoView?.({behavior:'smooth',block:'nearest'});
   }
   function resetConversation() {
-    conversationFigures=[];following=true;lastActualStage=null;lastToolEvent=null;toolCalls.clear();selectedId='ledger';turnStatus='Waiting for conversation';galleryRequested=false;activeFigureKey=null;
+    conversationFigures=[];following=true;lastActualStage=null;lastToolEvent=null;toolCalls.clear();selectedId='ledger';turnStatus='Waiting for conversation';galleryRequested=false;activeFigureKey=null;lastDisplayedFigureKey=null;
     const workflow=root?.querySelector('[data-guide-overview]');if(workflow)workflow.open=options?.overviewOpen!==false;
     if(root){renderDetail();renderFollowing();renderGallery();}
   }
@@ -288,7 +303,7 @@
   function init(settings={}) {
     root=global.document?.querySelector('#hypothesis-guide');
     if(!root)return false;
-    options=settings;selectedId='ledger';researchSources=[];caseFigures=[];conversationFigures=[];following=true;lastActualStage=null;lastToolEvent=null;toolCalls.clear();turnStatus='Waiting for conversation';galleryRequested=false;activeFigureKey=null;gallerySignature=null;
+    options=settings;selectedId='ledger';researchSources=[];caseFigures=[];conversationFigures=[];following=true;lastActualStage=null;lastToolEvent=null;toolCalls.clear();turnStatus='Waiting for conversation';galleryRequested=false;activeFigureKey=null;lastDisplayedFigureKey=null;gallerySignature=null;
     root.innerHTML=`<header class="evidence-workspace-header"><div><h2>Evidence</h2><p>16–22 April 2019</p></div><button type="button" class="text-button evidence-figure-count" data-guide-figure-count aria-controls="hypothesis-guide-gallery" hidden></button></header><div class="evidence-follow"><span data-guide-mode>Following conversation</span><span data-guide-status role="status" aria-live="polite">Waiting for conversation</span><button type="button" class="text-button" data-guide-resume hidden>Resume following</button></div><details class="hypothesis-guide-overview evidence-workflow" data-guide-overview${options.overviewOpen===false?'':' open'}><summary><span>Workflow reference</span><span aria-hidden="true">⌄</span></summary><header class="hypothesis-guide-heading"><p>Turn a question into a testable, reviewed idea.</p></header><div class="hypothesis-guide-map"><svg class="hypothesis-guide-connectors" viewBox="0 0 336 174" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><marker id="hypothesis-guide-arrow" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6Z"/></marker></defs><g marker-end="url(#hypothesis-guide-arrow)"><path d="M148 26H186"/><path d="M252 46V60"/><path d="M188 80H150"/><path d="M84 100V114"/><path d="M148 134H186"/><path class="hypothesis-guide-return" d="M252 154V166H7V26H18"/></g></svg><div class="hypothesis-guide-nodes" role="group" aria-label="Explore the six steps of hypothesis lab">${STEPS.map((step,index)=>`<button type="button" class="hypothesis-guide-node hypothesis-guide-node-${escapeHTML(step.id)}" data-guide-step="${escapeHTML(step.id)}" aria-pressed="${index===0?'true':'false'}" aria-controls="hypothesis-guide-detail" aria-label="${escapeHTML(step.title+' — '+step.role)}"><span class="hypothesis-guide-node-number" aria-hidden="true">${index+1}</span><span class="hypothesis-guide-node-copy"><strong>${escapeHTML(step.label)}</strong><small>${escapeHTML(step.role)}</small></span></button>`).join('')}</div><span class="hypothesis-guide-return-label">Findings return to the ledger</span></div><p class="hypothesis-guide-caption">Explore the workflow · selection does not run agents</p></details><section id="hypothesis-guide-detail" data-guide-detail aria-labelledby="hypothesis-guide-detail-title"></section><section id="hypothesis-guide-gallery" data-guide-gallery aria-label="Evidence figures" tabindex="-1"></section><section class="evidence-sources" data-guide-sources aria-label="Saved files for the selected step" hidden></section><p class="sr-only" data-guide-announcement role="status" aria-live="polite" aria-atomic="true"></p>`;
     root.querySelectorAll('[data-guide-step]').forEach(button=>button.addEventListener('click',()=>selectStep(button.dataset.guideStep)));
     root.querySelector('[data-guide-resume]').addEventListener('click',resumeFollowing);

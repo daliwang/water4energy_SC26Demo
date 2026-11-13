@@ -115,3 +115,18 @@
 
 .research-theme .agent-state:not(.working){display:none}
 .research-theme .hypothesis-lab-grid .demo-agent-primary .welcome h3{color:var(--genesis-navy)}
+/* Context visibility is explicit: April is one selected case within the project. */
+[data-april-only][hidden],#development-evidence[hidden]{display:none!important}
+#development-evidence{height:100%;min-height:0;min-width:0;overflow:auto;border:0;border-left:1px solid var(--line);border-radius:0;padding:20px 24px;background:#fff;scrollbar-gutter:stable}
+.context-switcher select{width:205px;max-width:100%;padding:6px 7px;font-size:11px;line-height:1.5;border-radius:4px}
+.research-theme .hypothesis-lab-grid .demo-agent-primary>.panel-heading{flex-wrap:wrap;gap:12px}
+.research-theme .hypothesis-lab-grid .agent-header-actions{flex-wrap:wrap;justify-content:flex-end;max-width:100%}
+.research-theme .demo-version{display:inline-flex;font-size:11px;white-space:nowrap;padding:5px 7px}
+.research-theme .sidebar{overflow-y:auto}.research-theme .brand small{font-size:8px;letter-spacing:.2px}.research-theme .project-label{font-size:11px;letter-spacing:0}
+.history-context-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 15px;font-size:12px;color:var(--muted)}.history-context-actions .text-button{font-size:12px;line-height:1.6;padding:0}
+.method-destinations{margin:0 0 18px}.method-destinations .text-button{font-size:13px;line-height:1.7;text-align:left}
+@media(max-width:1100px){#development-evidence{height:auto;overflow:visible;border-left:0;border-top:1px solid var(--line)}}
+@media(max-width:640px){#development-evidence{padding:20px 17px}.context-switcher select{width:190px}.research-theme .hypothesis-lab-grid .agent-header-actions{justify-content:flex-start;width:100%}.research-theme .demo-version{font-size:10px}}
+.research-theme .message-body .request-details{margin-top:8px;font-size:12px;line-height:1.6}
+.research-theme .message-body .request-details>summary{cursor:pointer;color:var(--text-secondary)}
+.research-theme .message-body .request-details>div{max-height:240px;overflow:auto;margin-top:8px;white-space:pre-wrap}

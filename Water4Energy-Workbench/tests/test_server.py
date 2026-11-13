@@ -103,6 +103,27 @@ class ServerTests(unittest.TestCase):
         threading.Thread(target=cls.wrapper.serve_forever, daemon=True).start()
         cls.port = cls.wrapper.server_port
 
+    def test_workbench_assets_are_fixed_local_files_only(self):
+        folder = self.wrapper.app.public / "assets"
+        folder.mkdir(exist_ok=True)
+        status, payload, _ = self.request("GET", "/api/workbench-assets")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(payload), {})
+        video = folder / "water4energy-workbench-90s.mp4"
+        captions = folder / "water4energy-workbench-90s.vtt"
+        score = folder / "water4energy-april-2019-score.png"
+        try:
+            video.write_bytes(b"fixture video presence only")
+            captions.write_text("WEBVTT\n\n")
+            score.symlink_to(self.wrapper.app.root / "secret.txt")
+            status, payload, _ = self.request("GET", "/api/workbench-assets")
+            self.assertEqual(status, 200)
+            self.assertEqual(json.loads(payload), {"video": "/assets/" + video.name, "captions": "/assets/" + captions.name})
+        finally:
+            video.unlink(missing_ok=True)
+            captions.unlink(missing_ok=True)
+            score.unlink(missing_ok=True)
+
     @classmethod
     def tearDownClass(cls):
         FakeVista.release_stream.set()

@@ -5,7 +5,7 @@
 function renderPipeline() {}
 function renderStageCoverage() {}
 function showWorkflowDetails() {
-  showDetails('The April 2019 hypothesis-lab demo',`<p>This is one VISTA project, <strong>Water4Energy-TVA-agent-loop</strong>, for the week <strong>16–22 April 2019</strong>, issued 15 April.</p><h3>The walkthrough</h3><p>Read the experiment ledger before proposing a new hypothesis. The Proposer, Critic and Referee use existing scored evidence to identify an open gap and describe a protocol. A person still authorizes any training.</p><h3>The evidence on screen</h3><p>Temperature and precipitation use the 1979–2017 week stored in the example files, plus the residual 9×9 results. Runoff is labeled ERA5 observation; the HEADWATER forecast slot is unavailable. The downscale panel compares frozen Trial 0 U-Net and bilinear results at 1° → 0.25°.</p><h3>Optional final panel</h3><p>A dam readout is shown only when enabled, with Normandy or Norris and an agreed plain-language rule. The interface does not infer an operating rule or run RiverWare.</p><p><a href="https://github.com/daliwang/HEADWATER/blob/main/docs/TVA_AGENT_DEMO_PLAN_20261102.md" target="_blank" rel="noopener noreferrer">Read the source demonstration plan ↗</a></p>`);
+  showDetails('The April 2019 hypothesis-lab demo',`<p>This is one VISTA project, <strong>Water4Energy-TVA-agent-loop</strong>, for the week <strong>16–22 April 2019</strong>, issued 15 April.</p><h3>The walkthrough</h3><p>Read the experiment ledger before proposing a new hypothesis. The Proposer, Critic and Referee use existing scored evidence to identify an open gap and describe a protocol. A person still authorizes any training.</p><h3>The evidence on screen</h3><p>Temperature and precipitation use the saved climate-week plus residual 9×9 results. Runoff is labeled ERA5 observation; the HEADWATER forecast slot is unavailable. The downscale panel compares frozen Trial 0 U-Net and bilinear results at 1° → 0.25°.</p><h3>Optional final panel</h3><p>A dam readout is shown only when enabled, with Normandy or Norris and an agreed plain-language rule. The interface does not infer an operating rule or run RiverWare.</p><p><a href="https://github.com/daliwang/HEADWATER/blob/main/docs/TVA_AGENT_DEMO_PLAN_20261102.md" target="_blank" rel="noopener noreferrer">Read the source demonstration plan ↗</a></p>`);
 }
 const FEATURED_HINTS = ['walkthrough','ledger','runoff'];
 const HINT_LABELS = {walkthrough:'Start walkthrough',ledger:'Read ledger',runoff:'Explain runoff'};
@@ -32,6 +32,7 @@ function renderPromptHints() {
 // Retained name for the existing app initialization; no separate library view.
 function renderPromptLibrary() {renderPromptHints();}
 function usePrompt(id) {
+  if(typeof isAprilContext==='function'&&!isAprilContext()){toast('Open the TVA case to prepare an April question.');return;}
   if(state.busy){toast('Finish the current turn before preparing another question.');return;}
   const prompt=state.prompts.find(item=>item.id===id);if(!prompt || typeof prompt.livePrompt!=='string')return;
   prepareDemoPrompt(prompt.livePrompt);

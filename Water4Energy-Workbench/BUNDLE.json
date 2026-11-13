@@ -1,0 +1,9 @@
+{
+  "product": "Water4Energy workbench",
+  "interface_version": "0.15.1",
+  "distribution": "source-checkout",
+  "project": "Water4Energy-TVA-agent-loop",
+  "launcher": "Start TVA Workbench.command",
+  "requires": "Python 3.9+; existing local VISTA project for live chat",
+  "private_backend_payload_included": false
+}

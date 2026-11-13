@@ -1,0 +1,13 @@
+Water4Energy workbench v0.15.1 — public interface source
+
+Open the Water4Energy-Workbench folder and double-click Start TVA Workbench.command.
+Keep Terminal open and follow the printed local URL. Python 3.9+ is required.
+
+This checkout opens the interface without changing the local VISTA backend.
+For live chat, open VISTA, configure your own model provider, and connect to
+Water4Energy-TVA-agent-loop in Connection settings.
+
+The public repository does not contain private research/evidence bundles.
+For backend installation, use the full authorized combined ZIP and its launcher.
+
+See README.md and VISTA_SETUP.md for details.

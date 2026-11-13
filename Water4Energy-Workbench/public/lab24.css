@@ -1,0 +1,24 @@
+.lab24-record-label{font-size:11px;line-height:1.6;color:var(--muted);margin:0 0 8px}
+.lab24-step-detail h3,.lab24-evidence-heading h2{font-size:20px;line-height:1.4;color:var(--genesis-navy);font-weight:550;margin:0 0 10px}
+.lab24-step-detail>p{font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 12px}
+.lab24-step-detail>.lab24-record-label{font-size:11px;color:var(--muted)}
+.lab24-step-detail>.lab24-lead{font-size:18px;line-height:1.45;color:var(--genesis-navy)}
+.lab24-step-detail>.lab24-takeaway{font-size:13px;color:var(--text-secondary);border-left:2px solid var(--ornl-green);padding-left:12px;margin:14px 0}
+.lab24-actions{display:flex;flex-wrap:wrap;gap:10px 20px;margin:16px 0}
+.lab24-actions button{font-size:12px;text-align:left}
+.lab24-sources,.lab24-technical{font-size:12px;line-height:1.7;margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.lab24-sources summary,.lab24-technical summary{cursor:pointer;color:var(--genesis-navy)}
+.lab24-sources a{color:var(--ornl-green)}
+.lab24-sources p,.lab24-technical p{margin:10px 0 0;color:var(--text-secondary)}
+.lab24-outcome{border:1px solid var(--line);background:var(--surface-muted);padding:16px;margin:18px 0}
+.lab24-outcome h3{font-size:17px}.lab24-outcome>p:last-child{font-size:13px;line-height:1.6;margin:12px 0 0}
+.lab24-outcome dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:12px 0 0}
+.lab24-outcome dt{font-size:12px;color:var(--text-secondary)}
+.lab24-outcome dd{font-size:24px;color:var(--genesis-navy);margin:5px 0 0}
+.lab24-outcome dd span{font-size:11px;color:var(--muted);display:block;margin-top:3px}
+.lab24-evidence-heading{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.lab24-evidence-heading h2{font-size:18px}.lab24-evidence-heading p{font-size:12px;color:var(--muted);margin:6px 0 0}
+#lab24-evidence{padding:24px;min-width:0;overflow:auto}
+#lab24-evidence[hidden]{display:none}
+.lab24-workflow .hypothesis-guide-node small{font-size:9px;line-height:1.35}
+@media(max-width:700px){#lab24-evidence{padding:20px 17px}.lab24-outcome dl{gap:10px}.lab24-outcome dd{font-size:22px}}

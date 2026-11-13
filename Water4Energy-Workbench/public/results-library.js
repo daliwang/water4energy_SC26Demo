@@ -145,7 +145,7 @@
     }
     if (count) count.textContent = '—';
     if (!options.projectFound) {
-      empty(container, 'Connect your TVA project.', 'Open VISTA and check Connection settings to view saved figures, data and reports.');
+      empty(container, 'Connect your project.', 'Open VISTA and check Connection settings to view saved figures, data and reports.');
       return 0;
     }
     empty(container, 'Loading saved results…', 'Reading this project’s output files from VISTA.');

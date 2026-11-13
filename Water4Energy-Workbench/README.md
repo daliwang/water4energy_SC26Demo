@@ -1,101 +1,51 @@
-# Water4Energy workbench · v0.2.0
+# Water4Energy workbench · v0.15.1
 
-This package is the Water4Energy project workbench. HEADWATER development is the screen the app opens on. The 16–22 April 2019 TVA week is one case inside the project. VISTA supplies the live agent, loaded skills, knowledge bases and saved files.
+A project interface for explaining how weather-model research informs water and energy questions. It opens on **HEADWATER development**, keeps chat on the left, and places the selected workflow or evidence on the right. [VISTA](https://github.com/Genesis-VISTA/vista) supplies the agent, project storage and model connection.
 
-![Hypothesis-lab workspace](Preview.jpg)
+## Launch this repository checkout
 
-## Launch
+1. Open **Water4Energy-Workbench**.
+2. Double-click **Start TVA Workbench.command** on macOS. Keep its Terminal window open. Windows uses **Start TVA Workbench.bat**; Linux uses `sh start.sh`.
+3. Follow the local URL printed by the launcher. It selects an available port if another version is already running.
 
-From this folder, double-click **Start TVA Workbench.command** on macOS. Keep the Terminal window open. Windows uses **Start TVA Workbench.bat** with Python 3.9+; Linux uses `sh start.sh`. Terminal users can run `python3 server.py`.
+Python 3.9+ is required; the Mac launcher can use VISTA's bundled Python. No frontend build, npm install or pip install is needed. Terminal users can run `python3 server.py --no-browser`.
 
-The launcher prints the version, folder and actual local URL, and opens a browser tab. It prefers port 8765. If another copy occupies that port, this version uses an available loopback port without stopping the other process. Opening this same copy again reuses its validated running instance. Follow the printed URL; an older tab on port 8765 may belong to another version. Control+C stops this wrapper.
+This public checkout is the **interface source distribution**. It opens without creating or changing a VISTA project. For live conversation, open VISTA, configure your own model provider, and use **Connection settings** to connect to `http://127.0.0.1:8001` and project **Water4Energy-TVA-agent-loop**. Missing skills and saved figures are reported in the interface.
 
-No npm, pip or frontend build is required. The launcher uses VISTA's bundled Python if available, otherwise Python 3.9+. The interface can open before VISTA is configured; readiness and missing artifacts remain explicit.
+The authorized combined ZIP remains the supported way to install the saved-evidence backend: extract that complete ZIP and use its single launcher. This repository does not include private research snapshots, skill reference bundles, migration archives, evidence archives, paper PDFs or credentials. Do not copy those materials into a public commit. An unmanifested local backend folder is not automatically installed. See [VISTA_SETUP.md](VISTA_SETUP.md) for the project and evidence contracts.
 
-## Follow the method into the TVA case
+## Follow the workflow
 
-The application opens on **HEADWATER development**. Hypothesis lab introduces the project method. **Try this question in Case Lab** opens the chat with that editable request prepared. It does not send a message or claim that a role has run. The TVA case remains available from the sidebar.
-
-The main tabs follow this order:
-
-| Tab | Purpose |
+| Screen | Purpose |
 | --- | --- |
-| **Hypothesis lab** | Learn the ledger-first loop and what the 16–22 April 2019 demonstration contains |
-| **TVA network** | Explore study coverage and the reservoir/water-for-energy decision context |
-| **TVA Case Lab** | Ask a case question and inspect cited files and figures beside the chat |
-| **Results Library** | Browse saved output files in the compact results list |
-| **Literature library** | Find source papers and project references in compact reading rows |
-| **Skills & sources** | Inspect loaded project skills and the core capability checklist |
+| **HEADWATER development** | Introduce the question, prepared data, experiment design, recorded execution, scores and a separate downscaling example. |
+| **Hypothesis lab** | Explore the ledger, Proposer, Critic, Referee, human review and evidence using the completed October example. |
+| **TVA case** | Introduce the study network and open the 16–22 April 2019 case. |
+| **Case Lab** | Ask an editable starter question and inspect figures beside the conversation. |
+| **Results Library / Literature library** | Browse output files and source references in compact lists. |
+| **Skills & sources / Compute / Connection settings** | Inspect the connected project and its resources. |
 
-TVA network introduces spring storage versus flood space, downstream water needs, energy-water connections and the cold-water concern recorded in the project briefing. It links to official TVA river-management guidance and the 15 September briefing. The 54-location catalog is study coverage, with 12 headwater reservoirs and 42 other locations; its reference markers are not a complete operational routing model. Selecting a background location does not change the April case or enable a dam policy. Headwaters start expanded, the other locations collapsed; search reveals matches and clearing it restores your expansion preferences.
+HEADWATER, the October worked example and the April TVA case keep separate conversations and unsent drafts. Changing context during a running turn is blocked. The same chat column remains on the left when moving between the development, method and Case Lab screens. Starter controls prepare an editable request; a person presses **Send**. They do not start a job or grant execution approval.
 
-The chat-focused **TVA Case Lab** keeps the full-height conversation on the left and one evidence workspace on the right. Three starter questions introduce the ledger, saved weather figures and frozen downscaling comparison. **Questions for this TVA case** remains available after the welcome disappears, with six editable questions covering ledger, weather, downscaling, observed runoff, proposal review and command review. Review the request and press **Send** to call VISTA. These controls retain the case/source and no-execution guard instructions.
+The evidence workspace follows actual displayed files and preserves a manually selected figure until **Resume following** is chosen. Drag **Adjust message box** up or down to resize the composer. Malformed provider tool replies are shown as incomplete answers and can be retried only by the person. The **Powered by VISTA** credit links to the VISTA project.
 
-![TVA Case Lab](Preview-case-lab.jpg)
+The ORNL and Genesis marks, navy-and-green theme, compact libraries, 12 distinguished headwater reservoirs, optional dam panel, launcher filenames and VISTA project identity are retained. The dam readout remains optional and needs an agreed reservoir rule.
 
-The evidence topic follows actual structured VISTA skill/tool activity; a known saved Critic or Referee file can identify a topic, while free-text mentions cannot. A topic highlight is not proof that a review completed. **Workflow reference** starts collapsed here because the introduction teaches the complete method. It can still be opened and explored. Manual selection pauses following; **Resume following** returns to the latest observed topic. A new explicit Send resumes following. Human review never grants approval or starts training.
+## Evidence and scope
 
-One large figure occupies the evidence area, with a thumbnail strip, actual filename and downloads. Case figures retain their April metadata checks and observation/frozen-result labels. Other current images explicitly displayed by the conversation are labeled **Case not verified**. New conversation images become the focus while following; manual selection stays put through refreshes and new arrivals. Switching conversations clears their displayed images while retaining checked project case figures. Artifact reads remain scoped/coalesced and poll every four seconds only while a turn is active.
+The development and October explanations in this public source distribution use the [public project summary](../Water4Energy_workbench.md) and [action record](../Water4Energy_Workbench_Actions_20261112.md). Detailed proposal, review and approval records are read from an authorized local backend when available. The public cards do not reconstruct private review thresholds or approval receipts.
 
-Drag **Adjust message box** up or down to resize it. Arrow keys adjust it; Home/End choose limits; Enter or double-click resets. Bounds preserve transcript and Send/Stop space even when the question menu is expanded. On narrow screens, evidence stacks below chat.
+The temperature result belongs to the **H100 / CCSI 9×9** model: about **0.77°C** error versus **0.86°C** for **the 1979–2017 week already in the example files**, across four saved 2019 target weeks. Lux lists run names without borrowing that score. Temperature errors are not air temperatures, and a retrospective record grants no permission for a new run.
 
-**History** in the TVA Case Lab header opens saved conversations, extra hints, conversation artifacts, provenance and Export brief. **Back to TVA Case Lab** returns to the current conversation. The Water4Energy brand returns to the introduction. The optional reservoir readout stays in Results Library, off by default.
+The five supplied PNG figures retain their upstream bytes and pinned provenance. The monthly April 2019 refinement maps summarize 30 days at about 4 km; the TVA case's frozen Trial 0 comparison is a separate weekly example at 0.25°. The monthly maps do not establish a connected HEADWATER forecasting-to-downscaling pipeline. The April runoff panel describes observed ERA5 surface runoff; a runoff forecast remains unavailable. Video, captions and an approved home-score image are optional local assets.
 
-The ORNL/Genesis navy-and-green theme, original logos, compact libraries and compute status in Connection settings are retained. The wider weather-to-inflow/economics pipeline is introduced as project context; the runnable demonstration remains the existing April evidence review.
+## Development and checks
 
-## What the walkthrough shows
-
-- Project, eight required skills, actual knowledge-index status and the six lead-source checks.
-- The ledger-first loop: ledger → Proposer → Critic → Referee → human approval → evidence back to the ledger. Buttons prepare editable requests; they do not start a multi-agent run by themselves.
-- Temperature and precipitation from the frozen climate-week plus residual 9×9 result.
-- **Observed ERA5 surface runoff**, with the HEADWATER runoff forecast explicitly unavailable.
-- Frozen **Trial 0, 1° → 0.25°** downscaling beside bilinear, scored 7 September 2026.
-- An optional, off-by-default dam panel. Select Normandy or Norris and provide the agreed rule before preparing `dam.readout`. The interface does not infer a fill/hold policy.
-
-The evidence cards read a matching manifest and existing files from the selected VISTA project's outputs. They do not turn arbitrary images into case results. Metadata and file-presence checks are not an independent scientific re-score. No prediction arrays, private ledger, checkpoints or example scientific results are bundled.
-
-The study network provides the decision context, while History, Results Library and resource status support work in TVA Case Lab. General conversation files remain separate from the fixed-case evidence cards. The native VISTA Hypothesis Lab debate page is not required: this interface follows the HEADWATER checkout's research loop through VISTA skills.
-
-## Literature and compute
-
-**Literature library** is a searchable snapshot checked on 9 November 2026 across Dali's four shared repositories. HEADWATER tracks 22 shelf PDFs: 20 have no repair flag, while the repository notes identify two needing replacement/correction. The complete tab has 42 records: 24 repository PDFs (including reference/project draft PDFs), 2 repair entries, 15 pending references and 1 project review note. Titles, authors, years, topics and availability are searchable. Compact rows combine the citation and PDF/DOI/record links; Details expands file paths, topics and notes. Repair notes stay visible without expanding a row. Links point to pinned repository commits or supplied scholarly destinations. Paper bytes and GitHub credentials are not bundled. **Reload catalog** rereads the package snapshot; it does not fetch new repository contents or index papers in VISTA.
-
-**Connection settings** now contains both the saved backend/project fields and a separate read-only compute section for Odo, Frontier, Lux and planned CCSI. **Refresh status** reads the current saved connection. Save changes only the two connection fields. Resource readiness does not verify a TVA runtime, and the CCSI card does not register or authenticate a node.
-
-## Connect the science backend
-
-Open VISTA separately. The default project is **Water4Energy-TVA-agent-loop** and backend is `http://127.0.0.1:8001`. Each laptop needs its own project, skill loading, knowledge indexing and staged source files. The package does not create or train these automatically.
-
-See **[VISTA_SETUP.md](VISTA_SETUP.md)** for the eight skills, optional dam skill, lead knowledge sources and evidence-manifest contract. The current interface can be fully inspected with missing dependencies; a scientific walkthrough requires those dependencies to be supplied.
-
-A starter or loop button fills the composer. Review the text and click Send to call the real VISTA agent. The six cold-open questions provide the demo acceptance checklist. Completion of a chat turn is not proof that a scientific test passed or a scheduler job completed.
-
-## Storage and scope
-
-VISTA owns saved outputs, history and credentials. Results Library browses the selected project's output directory as a compact file list: extension, filename, size/date and original download. Safe raster Preview buttons load an enlarged image only on request; the list itself does not preload image tiles. Search and type filters are retained. Chat attachments supply input files. Export brief creates a Markdown download from the selected conversation.
-
-The wrapper stores only backend/project selection and validated launch-port metadata under ignored `.local/`. It binds to loopback only. No new training, ERA5 download, RiverWare, river temperature or plant-MW calculation is part of this walkthrough. A figure redraw needs its own explicit request and supported runtime.
-
-## Source and versions
-
-[Dali's plan](https://github.com/daliwang/HEADWATER/blob/main/docs/TVA_AGENT_DEMO_PLAN_20261102.md), [HEADWATER lab](https://github.com/daliwang/HEADWATER/blob/main/hypothesis_lab/README.md), [runtime](https://github.com/daliwang/HEADWATER/blob/main/hypothesis_lab/RUNTIME.md).
-
-| Tag | Interface |
-| --- | --- |
-| v0.1.0 | Yang Chen. The workbench this package continues. |
-| v0.2.0 | Chat beside HEADWATER development and the Hypothesis lab. Downscaling is the sixth stage. Compute is a sidebar page. |
-
-Yang's workbench is v0.1.0. This package is v0.2.0. The earlier TVA interface tags, v0.2.1 through v0.12.1, stay in `https://github.com/cheny-4/tva-workbench.git`.
-
-A 12 November note on the agent loop and a 90-second video for this interface is [Water4Energy_workbench.md](../Water4Energy_workbench.md).
-
-## Development
-
-The app is vanilla HTML/CSS/JavaScript with a Python standard-library adapter. `case-journey.js` connects method exploration, navigation and guarded question preparation; `case-journey.css` lays out the introduction and decision context; `research-workspace.css` supplies the shared workspace treatment; `hypothesis-guide.js` owns following and the focused evidence viewer; `live-lab-sync.js` scopes/coalesces artifact reads; `composer-resize.js` sizes the input; `literature-library.js` renders the audited metadata snapshot; `hypothesis-demo.js` owns case/readiness/artifact validation; `project-ui.js` owns secondary views; `results-library.js` browses stored outputs. Brand assets remain local and proportional. See [BRANDING.md](BRANDING.md), [DATA_NOTES.md](DATA_NOTES.md), [WORKFLOW_NOTES.md](WORKFLOW_NOTES.md), [BACKEND.md](BACKEND.md) and [VERIFICATION.md](VERIFICATION.md).
+The UI uses vanilla HTML/CSS/JavaScript and a Python standard-library server. Browser calls use its scoped local VISTA adapter. VISTA owns model credentials, conversations and outputs; ignored `.local/` stores only this interface's local connection/runtime state.
 
 ```sh
 python3 -m unittest discover -s tests -v
 node --test tests/*.cjs
 ```
 
-Node is only needed for developer checks. Release archives omit `.git/`, `.local/`, credentials and caches.
+Node is needed only for developer checks. Installer tests use an isolated fake VISTA and synthetic fixtures; they do not contact the live science backend. The release builder requires the authorized complete backend payload before building an all-in-one archive. See [VERIFICATION.md](VERIFICATION.md) for checks on this integration.
