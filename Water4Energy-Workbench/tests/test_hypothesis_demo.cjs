@@ -73,6 +73,22 @@ test('a ready index does not imply all six lead sources are present',()=>{
   const rebuilding=JSON.parse(JSON.stringify(knowledge));rebuilding.knowledge_bases[0].ready=false;
   assert.equal(demo.knowledgeCoverage(rebuilding,definition.sources,definition.project).rows.find(row=>row.source.id==='plan').state,'listed');
 });
+test('current VISTA kebab-case names map only to the exact eight demo contracts',()=>{
+  const names=['lab-literature','lab-download','lab-ledger','lab-board','lab-design','lab-show-command','lab-realize','downscale-scorecard'];
+  const result=demo.skillReadiness({project:definition.project,project_found:true,count:8,skills:names.map(name=>({name}))},definition.project);
+  assert.equal(result.loaded,8);
+  assert.equal(result.optional,'missing');
+  const unrelated=demo.skillReadiness({project:definition.project,project_found:true,count:2,skills:[{name:'lab-ledger-extra'},{name:'tva-weekly-inflow-path2'}]},definition.project);
+  assert.equal(unrelated.loaded,0);
+});
+test('indexed descriptive Markdown filenames identify lead sources without accepting a generic README',()=>{
+  const documents=['HEADWATER_hypothesis_lab.md','Where_the_hypothesis_lab_runs.md','TVA_AGENT_DEMO_PLAN_20261102.md','TVA_Task3_Briefing_Summary_20260915.md','Trial_0_scorecard_7_September_2026.md','April_2019_ledger_excerpt.md'].map(filename=>({filename,title:filename,index_status:'indexed'}));
+  const knowledge={project:definition.project,project_found:true,count:1,knowledge_bases:[{ready:true,documents}]};
+  const result=demo.knowledgeCoverage(knowledge,definition.sources,definition.project);
+  assert.equal(result.listed,6);
+  assert.ok(result.rows.every(row=>row.state==='listed-ready-index'));
+  assert.equal(demo.sourceMatches(definition.sources[0],{filename:'README.md',title:'README.md'}),false);
+});
 test('the dam readout stays unavailable until explicitly enabled with matching rule and source',()=>{
   const manifestation=demo.validateManifest(fixture(),files);
   const selection={enabled:false,reservoir:'Normandy',rule:'Agreed test rule'};
@@ -98,6 +114,24 @@ function refreshHarness(provider) {
   instance.init({caseDefinition:definition,projectUrl:suffix=>'/api/vista/projects/'+definition.project+suffix,api:provider});
   return {instance,outputBase,refresh:(next={})=>instance.refresh({project:definition.project,status:{project_found:true},...next})};
 }
+test('project capabilities update without April output reads and survive a case reset, with kebab-case skill aliases',()=>{
+  const containers=Object.fromEntries(['#required-skills','#demo-readiness','#demo-sources'].map(id=>[id,{innerHTML:''}]));
+  const context=vm.createContext({module:{exports:{}},document:{querySelector:selector=>containers[selector]||null}});
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../public/hypothesis-demo.js'),'utf8'),context);
+  const instance=context.module.exports;let outputReads=0;
+  instance.init({caseDefinition:definition,projectUrl:suffix=>'/api/vista/projects/'+definition.project+suffix,api:()=>{outputReads++;throw new Error('Capabilities must not read case outputs');}});
+  const skills={project:definition.project,project_found:true,count:8,skills:definition.requiredSkills.map(skill=>({name:skill.id.replace(/[._]/g,'-')}))};
+  const knowledge={project:definition.project,project_found:true,count:9,ready_count:9,knowledge_bases:definition.sources.map(source=>({ready:true,documents:[{filename:source.paths[0],index_status:'indexed'}]}))};
+  const result=instance.updateCapabilities({project:definition.project,status:{project_found:true},skills,knowledge});
+  assert.equal(result.loaded,8);assert.match(containers['#demo-readiness'].innerHTML,/8 \/ 8 loaded/);assert.match(containers['#demo-readiness'].innerHTML,/9 \/ 9 indexes ready/);
+  assert.equal((containers['#required-skills'].innerHTML.match(/class="demo-badge loaded"/g)||[]).length,8);
+  assert.doesNotMatch(containers['#required-skills'].innerHTML,/Unknown/);
+  instance.reset();assert.equal(outputReads,0);
+  assert.equal((containers['#required-skills'].innerHTML.match(/class="demo-badge loaded"/g)||[]).length,8);
+  instance.updateCapabilities({project:'Other project',status:{project_found:true},skills,knowledge});
+  assert.match(containers['#required-skills'].innerHTML,/Unknown/);assert.doesNotMatch(containers['#required-skills'].innerHTML,/class="demo-badge loaded"/);
+  assert.equal(outputReads,0);
+});
 function researchFixture() {
   const manifest=fixture();
   manifest.research={ledger_file:'records/ledger April.json',proposal_file:'review/proposal.md',critic_file:'review/critic.md',referee_file:'review/referee.md',protocol_file:'review/human protocol.md'};

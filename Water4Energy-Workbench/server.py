@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""TVA Workbench: dependency-free local web server and scoped VISTA proxy.
+"""Water4Energy workbench: dependency-free local web server and scoped VISTA proxy.
 
 Python 3.9+. Does not start VISTA, handle credentials, or submit jobs on startup.
 """
@@ -23,7 +23,7 @@ from urllib.parse import parse_qs, quote, unquote, urlsplit
 import webbrowser
 
 APP_ROOT = Path(__file__).resolve().parent
-VERSION = "0.2.0"
+VERSION = "0.15.1"
 MAX_BODY = 64 * 1024 * 1024
 DEFAULT_CONFIG = {"backend_url": "http://127.0.0.1:8001", "project": "Water4Energy-TVA-agent-loop"}
 PROJECT_PATTERN = re.compile(r"[A-Za-z0-9_ .-]{2,80}\Z")
@@ -398,6 +398,25 @@ class WorkbenchHandler(BaseHTTPRequestHandler):
             self.json_response(200, {"app": "tva-workbench", "version": VERSION,
                                      "instance_id": self.app.instance_id,
                                      "connection_id": connection_identity(self.app.snapshot())})
+        elif path == "/api/workbench-assets":
+            assets = {}
+            directory = (self.app.public / "assets").resolve()
+            for key, names in {
+                "video": ["water4energy-workbench-90s.mp4"],
+                "captions": ["water4energy-workbench-90s.vtt"],
+                "scoreMap": ["water4energy-april-2019-score.png", "water4energy-april-2019-score.jpg"],
+            }.items():
+                for name in names:
+                    candidate = directory / name
+                    try:
+                        resolved = candidate.resolve()
+                        resolved.relative_to(directory)
+                        if not candidate.is_symlink() and resolved.is_file() and resolved.stat().st_size:
+                            assets[key] = "/assets/" + name
+                            break
+                    except (OSError, ValueError):
+                        continue
+            self.json_response(200, assets)
         elif path == "/api/config":
             self.json_response(200, self.app.snapshot())
         elif path == "/api/status":
@@ -637,10 +656,10 @@ def main(argv=None, root=APP_ROOT):
         server, port = prepare_server(args.port, root=root, backend_url=args.backend_url,
                                       project=args.project, verbose=args.verbose)
     except (OSError, ValueError) as exc:
-        print("Cannot start TVA Workbench: {}".format(exc), file=sys.stderr)
+        print("Cannot start Water4Energy workbench: {}".format(exc), file=sys.stderr)
         return 1
     url = "http://127.0.0.1:{}".format(port)
-    print("TVA Workbench " + VERSION, flush=True)
+    print("Water4Energy workbench " + VERSION, flush=True)
     print("Folder: " + str(Path(root).resolve()), flush=True)
     print("Open " + url, flush=True)
     if server is None:
@@ -657,7 +676,7 @@ def main(argv=None, root=APP_ROOT):
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nTVA Workbench stopped. VISTA jobs, if any, are managed separately.")
+        print("\nWater4Energy workbench stopped. VISTA jobs, if any, are managed separately.")
     finally:
         if timer:
             timer.cancel()

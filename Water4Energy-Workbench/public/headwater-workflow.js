@@ -1,109 +1,144 @@
-/* Project workflow for the Water4Energy workbench. Cards prepare requests. They do not start jobs. */
-(function (global) {
+/* Supplied development record. Stage selection and question preparation never execute work. */
+(function(global){
   'use strict';
-  const GUARD = 'Do not submit jobs, execute training commands, retrain, download data, change settings, or invent figures or scores. Report missing files. A person approves the next training run.';
-  const QUESTIONS = Object.freeze([
-    {id:'scored', question:'What has the ledger already scored?', hint:'Start from the records already on disk.', focus:'Use lab.ledger and lab.board. Report scored, closed, and open rows.'},
-    {id:'brief', question:'What is the one change in the current brief?', hint:'One change, then a person picks the experiment.', focus:'Read the saved referee brief and name the one change. A brief is not a started job.'},
-    {id:'frontier', question:'What did Frontier already prepare?', hint:'153 weekly examples, then the root-zone soil copy.', focus:'Report the committed example count and the root-zone soil copy. The dates and the destination were already written down.'},
-    {id:'board', question:'Which board rows are ready, and which training flags are off?', hint:'Ready is not a start. The flag stays with a person.', focus:'Read the board. Name ready rows and say which training flags are off.'},
-    {id:'score', question:'What did the 2019 valley score return?', hint:'The number comes back to the ledger.', focus:'Read the saved 2019 valley score for det_v2_soil_k9 and the 1979–2017 week stored in the example files.'}
-  ].map(Object.freeze));
-  const LUX_RUNS = Object.freeze([
-    ['det_v2_reslim_patch2_obs', 'Reslim. Attention is over patches and variables. It does not run along the 90 days.'],
-    ['det_v2_soil_k9_obs', '9×9 soil CNN'],
-    ['lux_rocm/valley_cnn', '9×9 CNN'],
-    ['lux_rocm/band', '9×9 CNN plus the 10–20 day band'],
-    ['lux_rocm/daily90', 'Named as a Lux score. The trainer script in this tree is still the 9×9 CNN.'],
-    ['lux_rocm/tcwv', '9×9 CNN, column water vapour'],
-    ['lux_rocm/z500', '9×9 CNN, 500 hPa height'],
-    ['lux_rocm/z850', '9×9 CNN, 850 hPa height'],
-    ['lux_rocm/layer4', '9×9 CNN, soil-water layer 4']
+  const COMPARISON='the 1979–2017 week already in the example files';
+  const PUBLIC_STORY='https://github.com/daliwang/water4energy_SC26Demo/blob/d0199a817ddbfa0fbf65c9e81d9fcc53081611ee/Water4Energy_workbench.md';
+  const CONTEXTS=Object.freeze([
+    Object.freeze({id:'headwater',label:'HEADWATER development'}),
+    Object.freeze({id:'lab24',label:'Hypothesis lab · 24 October 2026'}),
+    Object.freeze({id:'tva',label:'TVA · 16–22 April 2019'})
   ]);
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let options = {}, selected = 'hypothesis', bound = false;
+  const PROJECT_CONTEXT='Water4Energy project — HEADWATER development. Read the existing development records in the HEADWATER context. Do not submit jobs, execute training commands, train a model, set human_flag or any training flag, change settings, download data, or invent scores. Report missing records explicitly. A person approves the next training run. Reading a stage or preparing this request does not authorize execution. Attribute det_v2_soil_k9 and its 0.77 degrees Celsius four-week valley temperature error to the H100s (ccsi-gpu), not Lux. Use the comparison label “'+COMPARISON+'”. Lux contributes the listed scored run names; its score files are on Lux, not in this checkout. Development record dates in 2026 are separate from the 2019 weather test weeks.';
+  const ANSWER_PROFILES=Object.freeze({ledger:{reader:'lab.ledger',question:'headwater-ledger'},brief:{reader:'lab.design',question:'headwater-brief'},data:{reader:'lab.download',question:'headwater-data'},board:{reader:'lab.board',question:'headwater-board'},score:{reader:'lab.ledger',question:'headwater-score'},downscale:{reader:'downscale.scorecard',question:'headwater-downscale'}});
+  const QUESTIONS=Object.freeze([
+    {id:'ledger',question:'What has the ledger already scored?',hint:'The ledger is the record of earlier tests and results.',focus:'Read the existing development results and distinguish a measured result from a remaining question.'},
+    {id:'brief',question:'What is the one change in the current brief?',hint:'Check which proposal was actually chosen.',focus:'Read the dated review pack. If the records do not identify one selected current brief, say so; do not choose one for the person.'},
+    {id:'data',question:'What did Frontier already prepare?',hint:'Which inputs were documented as available?',focus:'Read the dated preparation records: 153 weekly examples and the root-zone soil copy on Frontier. A recorded inventory is not a new live file check.'},
+    {id:'board',question:'Which board rows are ready, and which training flags are off?',hint:'Separate a task’s recorded state from permission to run it.',focus:'Read the dated board and distinguish it from current permission to run. The supplied 12 November 2026 record keeps both training flags off.'},
+    {id:'score',question:'What did the 2019 valley score return?',hint:'What improved, and what still needs work?',focus:'Explain the H100 9×9 four-week temperature-error comparison and the remaining rain problem, using the exact stored-week label. Do not present an error as the actual temperature.'}
+  ].map(Object.freeze));
+  const METHOD_QUESTIONS=Object.freeze({
+    ledger:'What has the Water4Energy ledger already scored, and which questions remain open?',
+    proposer:'What single change does the current HEADWATER brief propose?',
+    critic:'Does the HEADWATER proposal repeat an already-scored or blocked experiment without a meaningful change?',
+    referee:'What review evidence supports the proposed HEADWATER test, and what is still missing?',
+    human:'What would a person need to review before approving the next HEADWATER training run?',
+    evidence:'What did the saved HEADWATER score return to the project ledger?'
+  });
+  const STAGES=Object.freeze([
+    {id:'hypothesis',title:'Hypothesis',summary:'Ask a focused question',lead:'Can soil conditions and nearby locations help a weekly weather estimate?',copy:'Better weather estimates support water and energy planning. This recorded example follows a small model that uses soil information and a neighborhood of locations. Earlier tests help the team decide what to examine next.',takeaway:'Start with the record of earlier tests, then propose and review a meaningful change.',nav:'introduction',action:'Open Hypothesis lab'},
+    {id:'data',title:'Data',summary:'Check the inputs',lead:'Use inputs that are documented and ready for the test.',copy:'The Frontier inventory lists 153 weekly examples and a copy with root-zone soil information: water held in the soil that plant roots can reach. Dates and destination are part of that saved preparation record.',takeaway:'This is a dated preparation record, not a new data download or a live inventory check.',question:'data',action:'Ask about the prepared data'},
+    {id:'design',title:'Design',summary:'Change one thing',lead:'Make the change specific enough to compare.',copy:'The scored soil-input model looks across a wider neighborhood of locations. Its recorded change is a larger local window. This comparison does not isolate the effect of adding soil information alone.',takeaway:'The documented workflow uses a brief that names one change. A person picks the experiment and approves any future execution.',question:'brief',action:'Review this in Case Lab'},
+    {id:'execution',title:'Execution',summary:'Read the run record',lead:'Connect the written test to the machine and its saved result.',copy:'The supplied development record attributes this model to the H100 / CCSI machines. Lux holds other scored run folders. Their names are available in the supporting record below.',takeaway:'The walkthrough reads existing records. A person chooses and approves any future training run.',question:'board',action:'Ask about the recorded task states'},
+    {id:'score',title:'Score',summary:'Review and decide',lead:'Keep the improvement and the remaining problem together.',copy:'The H100 model has lower temperature error across the four saved 2019 test weeks: 0.77 degrees Celsius against 0.86 degrees Celsius for '+COMPARISON+'. It still misses much of the wet April week’s rain, and it does not improve every week.',takeaway:'The next decision is to define one changed test from those weaknesses, review it, and record why it should be tried.',question:'score',action:'Ask what the score means'},
+    {id:'downscale',title:'Downscaling',summary:'Inspect finer local detail',lead:'How can a coarse weather field show more local detail?',copy:'This separate example refines a 1° field to about 4 km across the Tennessee Valley. The supplied maps summarize all 30 days of April 2019, using daily maximum temperature and precipitation.',takeaway:'These monthly maps illustrate downscaling. They do not establish a connected HEADWATER-to-downscaling pipeline and are separate from the 16–22 April weekly Trial 0 comparison.',question:'downscale',action:'Ask about the monthly downscaling maps'}
+  ].map(Object.freeze));
+  const HISTORY=Object.freeze([
+    {date:'2026-10-18',label:'18 Oct 2026',title:'April tests reviewed',record:'The project summary records an April review on the H100s and earlier directions that did not improve the result.',next:'Start another proposal from those recorded tests.',source:PUBLIC_STORY+'#what-has-been-walked'},
+    {date:'2026-10-24',label:'Through 24 Oct 2026',title:'Result recorded',record:'The public summary names the 9×9 soil model as the valley model. Temperature error improves; rain and some weeks remain weak.',next:'Carry both the result and its limitations into the next design.',source:PUBLIC_STORY+'#what-has-been-walked'},
+    {date:'2026-10-26',label:'26–27 Oct 2026',title:'Further tests reviewed',record:'The summary records further tests, closes the CNN neighborhood search at 9×9, and names temporal attention as the next trunk.',next:'The written next trunk still needs a script and board row.',source:PUBLIC_STORY+'#what-has-been-walked'},
+    {date:'2026-11-12',label:'12 Nov 2026',title:'Demo record supplied',record:'The supplied record names the H100 result, remaining rain problem, and next tasks. Both training flags are off.',next:'A person chooses the next reviewed test and any future execution.',source:PUBLIC_STORY+'#what-the-board-is-holding'}
+  ].map(Object.freeze));
+  const LUX_RUNS=Object.freeze(['det_v2_reslim_patch2_obs','det_v2_soil_k9_obs','lux_rocm/valley_cnn','lux_rocm/band','lux_rocm/daily90','lux_rocm/tcwv','lux_rocm/z500','lux_rocm/z850','lux_rocm/layer4']);
+  const TRAINING_FLAGS=Object.freeze({h100:false,lux:false});
+  const BOARD=Object.freeze([
+    {title:'April rain rank',where:'Frontier',copy:'Reads the soil files. No GPU.'},
+    {title:'Lux device check',where:'Lux · one MI355X',copy:'Prints the device name. Does not train.'},
+    {title:'Column water E_tcwv_9x9',where:'Designed',copy:'Waits on the rank file and a person.'},
+    {title:'90-day daily filter',where:'Designed',copy:'An odd temporal kernel cannot see all 90 days.'},
+    {title:'Temporal attention along the 90 days',where:'Not a row',copy:'No script and no board row.',isRow:false}
+  ].map(Object.freeze));
+  const VIDEO_PATH='/assets/water4energy-workbench-90s.mp4';
+  const CAPTIONS_PATH='/assets/water4energy-workbench-90s.vtt';
+  const SCORE_PATHS=new Set(['/assets/water4energy-april-2019-score.png','/assets/water4energy-april-2019-score.jpg']);
+  const FIGURE_COMMIT='d0199a817ddbfa0fbf65c9e81d9fcc53081611ee';
+  const FIGURES=Object.freeze({
+    'temperature-reslim':Object.freeze({file:'tva_t2m_2019_reslim.png',title:'Four saved 2019 weeks · temperature',alt:'2019 temperature maps: reference, observed, 9 by 9 CNN, Reslim 6 degree and Reslim 2 degree models',caption:'2 m air temperature, in °C. Rows are January, April, July and October test weeks; the black box marks the Tennessee Valley. These are temperature fields, not error maps.'}),
+    'precipitation-reslim':Object.freeze({file:'tva_precip_2019_reslim.png',title:'Four saved 2019 weeks · precipitation',alt:'2019 precipitation maps: reference, observed, 9 by 9 CNN, Reslim 6 degree and Reslim 2 degree models',caption:'Weekly precipitation totals, in mm. The second row is 16–22 April 2019. Columns compare the reference, observations and three model configurations.'}),
+    'temperature-cnn':Object.freeze({file:'valley_temperature_2019.png',title:'Earlier neighborhood comparison · temperature',alt:'2019 temperature maps comparing reference, observations, 1 by 1, 3 by 3 and 9 by 9 CNN models',caption:'2 m air temperature, in °C. This figure compares CNN neighborhood sizes: 1×1, 3×3 and 9×9. It is a different comparison from the Reslim figures.'}),
+    'downscale-temperature':Object.freeze({file:'april_2019_tmax_refine.png',title:'April 2019 · daily maximum temperature',alt:'April 2019 daily maximum temperature refined from 1 degree to about 4 km, compared with Daymet and ERA5',caption:'All 30 days of April 2019. Daily maximum temperature, in °C: mean on top, daily 95th percentile below. Columns: refined field, Daymet/ERA5 comparison and their difference.'}),
+    'downscale-precipitation':Object.freeze({file:'april_2019_prcp_refine.png',title:'April 2019 · daily precipitation',alt:'April 2019 precipitation refined from 1 degree to about 4 km, compared with Daymet and ERA5',caption:'All 30 days of April 2019. Precipitation rate, in mm/day: mean daily amount on top, daily 95th percentile below. These are not weekly or monthly totals.'})
+  });
+  const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const POSTER='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="960" height="440" viewBox="0 0 960 440"><rect width="960" height="440" fill="#f4f7fa"/><g font-family="Arial,sans-serif" font-size="22" fill="#183146" text-anchor="middle"><text x="480" y="44">Water4Energy hypothesis lab</text><g fill="white" stroke="#c9dfd0"><rect x="110" y="80" width="260" height="72" rx="8"/><rect x="590" y="80" width="260" height="72" rx="8"/><rect x="590" y="200" width="260" height="72" rx="8"/><rect x="110" y="200" width="260" height="72" rx="8"/><rect x="110" y="320" width="260" height="72" rx="8"/><rect x="590" y="320" width="260" height="72" rx="8"/></g><text x="240" y="124">Ledger</text><text x="720" y="124">Proposer</text><text x="720" y="244">Critic</text><text x="240" y="244">Referee</text><text x="240" y="364">Human review</text><text x="720" y="364">Evidence</text></g><g fill="none" stroke="#00662c" stroke-width="3"><path d="M370 116h220m130 36v48M590 236H370m-130 36v48m130 36h220"/><path d="m575 108 15 8-15 8m137 61 8 15 8-15m-343 43-15 8 15 8m-153 61 8 15 8-15m327 33 15 8-15 8"/></g></svg>');
+  let options={},mount=null,selectedStage='hypothesis',resources=[],assets={},bound=false;
 
-  function requestFor(id) {
-    const item = QUESTIONS.find(q => q.id === id);
-    if (!item) return null;
-    return item.question + '\n\nProject: Water4Energy. Context: HEADWATER development. ' + item.focus + '\n\n' + GUARD;
+  function answerContract(profile){return 'Saved-evidence answer\nUse only '+profile.reader+' with --context headwater and --question '+profile.question+'. '
+    +'The context paragraph supplies background and safety constraints, not a request for supplementary April readers. '
+    +'Quote the returned verified_answer exactly, labelled “Saved-evidence answer”, without adding interpretations, tables or status claims. '
+    +'Call display_file for every returned display_paths entry. Cite source_citations separately using their readable titles and links; keep raw source_paths for inspection. '
+    +'If the reader or a required record is unavailable, report what is missing and stop. Do not substitute a TVA-case answer or choose a brief for the person.';}
+  const METHOD_TOPICS=Object.freeze({ledger:'ledger',proposer:'brief',critic:'brief',referee:'brief',human:'board',evidence:'score'});
+  function questionRequest(id){
+    const item=QUESTIONS.find(q=>q.id===id)||(id==='history'?{question:'How did this HEADWATER development cycle unfold?',focus:'Summarize the dated records, conclusions and next decisions without inventing execution dates.'}:id==='downscale'?{question:'What do the supplied April 2019 monthly downscaling maps show?',focus:'Read the supplied 30-day April 2019 1° to approximately 4 km maps. Daily maximum temperature is in °C; mean daily precipitation and daily 95th percentile are in mm/day. Distinguish these monthly maps from the 16–22 April weekly Trial 0 case and do not claim a coupled HEADWATER pipeline.'}:null);
+    const profile=id==='history'?{reader:'lab.ledger',question:'headwater-history'}:ANSWER_PROFILES[id];
+    if(!item||!profile)return null;
+    const contract=answerContract(profile);
+    return item.question+'\n\n'+PROJECT_CONTEXT+'\n\nQuestion focus: '+item.focus+'\n\n'+contract;
   }
-  function luxHTML() {
-    return `<article class="hw-lux"><h3>Lux run names</h3><p>Nine directories are listed as scored on Lux. Their score files are on Lux, not in this checkout.</p><table><thead><tr><th>Run on Lux</th><th>What it is</th></tr></thead><tbody>${LUX_RUNS.map(([name, what]) => `<tr><td><code>${esc(name)}</code></td><td>${esc(what)}</td></tr>`).join('')}</tbody></table></article>`;
+  function methodRequest(id){return Object.hasOwn(METHOD_QUESTIONS,id)?METHOD_QUESTIONS[id]+'\n\n'+PROJECT_CONTEXT+'\n\n'+answerContract(ANSWER_PROFILES[METHOD_TOPICS[id]])+' A saved proposal, critique or referee record is not a newly executed role; if no chosen proposal is established, retain that limitation.':null;}
+  function welcomeHTML(){return `<div class="welcome"><h3>Ask about the recorded example</h3><p>Start from the ledger: the record of earlier tests and results. Choose a question to put an editable request in the message box.</p><div class="welcome-questions">${QUESTIONS.slice(0,3).map(q=>`<button type="button" data-headwater-question="${q.id}">${esc(q.question)}<span aria-hidden="true">↗</span></button>`).join('')}</div><p class="welcome-note">Review the request, then Send.</p></div>`;}
+  function questionMenuHTML(){return `<details><summary>Questions for this case</summary><div class="case-question-list">${QUESTIONS.map(q=>`<button type="button" data-headwater-question="${q.id}"><strong>${esc(q.question)}</strong><span>${esc(q.hint)}</span></button>`).join('')}</div></details>`;}
+  function statusLabel(id){
+    const item=resources.find(r=>r?.id===id||id==='ccsi'&&['ccsi-gpu','h100'].includes(r?.id));
+    const state=item?.planned?'planned':item?.state;
+    return ({ready:'Ready in VISTA',checking:'Checking',planned:'Planned connection',not_connected:'Not connected',not_configured:'Not configured',degraded:'Needs attention',error:'Needs attention',unavailable:'Unavailable',expired:'Needs attention',globus_session_expired:'Needs attention',login_required:'Needs attention'})[state]||'Status not checked';
   }
-  function downscaleHTML() {
-    return `<article class="hw-downscale"><p>April 2019. A 1° field is drawn at about 4 km, one twenty-fourth of a degree, over the valley. The left map is the refined field, the middle map is Daymet/ERA5, and the right map is the difference. The top row is the monthly mean. The bottom row is the daily 95th percentile. These are the 2019 downscaling results. They are not a claim that the HEADWATER forecast and this downscaler are already one pipeline.</p><figure><img src="/assets/april_2019_tmax_refine.png" alt="April 2019 daily maximum temperature, 1 degree refined to about 4 kilometers, beside Daymet/ERA5"><figcaption>April 2019 daily maximum temperature. REFINED, 1° to about 4 km, 30 days.</figcaption></figure><figure><img src="/assets/april_2019_prcp_refine.png" alt="April 2019 precipitation, 1 degree refined to about 4 kilometers, beside Daymet/ERA5"><figcaption>April 2019 precipitation. Same layout. Mean above, the heavy days below.</figcaption></figure></article>`;
+  function connectionBadge(id){return `<span class="development-connection" data-development-connection="${id}">Connection: ${esc(statusLabel(id))}</span>`;}
+  function sourceLink(url,label='Source'){return `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} <span aria-hidden="true">↗</span></a>`;}
+  function suppliedFigureHTML(id){
+    const figure=FIGURES[id];if(!figure)return '';
+    const url='/assets/'+figure.file,source='https://github.com/daliwang/water4energy_SC26Demo/blob/'+FIGURE_COMMIT+'/Water4Energy-Workbench/public/assets/'+figure.file;
+    return `<figure class="development-supplied-figure" data-supplied-figure="${esc(id)}"><h4>${esc(figure.title)}</h4><a href="${url}" target="_blank" rel="noopener noreferrer" aria-label="Open full-size figure: ${esc(figure.title)}"><img src="${url}" loading="lazy" alt="${esc(figure.alt)}"></a><figcaption>${esc(figure.caption)}</figcaption><div class="development-figure-links">${sourceLink(source,'Supplied source')}<a href="${url}" download>Download figure</a><a href="/assets/dali-figures-provenance.json" target="_blank" rel="noopener noreferrer">Provenance</a></div></figure>`;
   }
-  function scoreHTML() {
-    return `<article class="hw-score"><p>The 2019 valley number returns to the ledger, and the next brief is written from that ledger. These two maps are the Reslim comparison: reference, observed, the 9×9, Reslim 6°, and Reslim 2°. Reslim attends over spatial patches and over variables. The 90 days enter as the channels of each variable. The four-week valley temperature for the 9×9 is <strong>0.77°C</strong> against <strong>0.86°C</strong> for the 1979–2017 week stored in the example files. Exact figures: 0.767 K and 0.861 K. Reslim 6° is 1.015 K and Reslim 2° is 1.124 K on that same four-week mean.</p><figure><img src="/assets/tva_t2m_2019_reslim.png" alt="2019 week-ahead temperature: reference, observed, 9×9, Reslim 6°, Reslim 2°"><figcaption>2019 week-ahead 2 m temperature. Columns: reference, observed, 9×9, Reslim 6°, Reslim 2°.</figcaption></figure><figure><img src="/assets/tva_precip_2019_reslim.png" alt="2019 week-ahead precipitation: reference, observed, 9×9, Reslim 6°, Reslim 2°"><figcaption>2019 week-ahead precipitation. Same columns. 16–22 April 2019 is the second row: observed valley 55.9 mm, the 1979–2017 week 24.4 mm.</figcaption></figure></article>`;
+  function comparisonFiguresHTML(){return `<details class="development-score-details development-visual-evidence"><summary>Supplied model comparison maps</summary><p>Four saved 2019 test weeks. The reference is ${COMPARISON}. These maps compare earlier model configurations; they are not the 24 October soil-residual test result.</p>${suppliedFigureHTML('temperature-reslim')}${suppliedFigureHTML('precipitation-reslim')}<details><summary>Earlier CNN neighborhood comparison</summary>${suppliedFigureHTML('temperature-cnn')}</details></details>`;}
+  function downscaleHTML(){return `<div class="development-downscale-evidence"><p class="development-record-label">Separate example · April 2019 · 30 days</p><h3>From a coarse field to local detail</h3><p>A 1° field is refined to 1/24°, about 4 km. Compare the refined maps with Daymet/ERA5 and inspect their differences.</p><p>Top row: the average across April. Bottom row: the daily 95th percentile, a value near the high end of the daily values. Daily maximum temperature is in °C; precipitation is in mm/day.</p><p class="development-stage-takeaway">These are monthly maps, separate from the 16–22 April weekly Trial 0 comparison. They do not establish a coupled HEADWATER-to-downscaling pipeline.</p>${suppliedFigureHTML('downscale-temperature')}${suppliedFigureHTML('downscale-precipitation')}</div>`;}
+  function resultHTML(){return `<div class="development-result-summary"><p class="development-record-label">Recorded result · H100 / CCSI</p><h3>Lower temperature error</h3><div class="development-result-values"><div><strong>0.77°C</strong><span>Recorded model</span></div><span class="development-result-versus">vs</span><div><strong>0.86°C</strong><span>Stored-week comparison</span></div></div><p class="development-result-scope">Across four saved 2019 test weeks. Lower error is better; these numbers describe error, not the actual temperature.</p><p class="development-comparison">Comparison: ${COMPARISON}.</p><p class="development-result-conclusion">Temperature improved in this comparison. Rain and some individual weeks still need work.</p></div>`;}
+  function h100Content(){return `<p class="development-machine-role"><code>ccsi-gpu</code> · H100 9×9</p><p>Model <code>det_v2_soil_k9</code>, fit on 1979–2017, stopped on 2018, scored on 2019.</p>${resultHTML()}<p>The recorded configuration uses soil information and a wider local window. This comparison does not isolate the effect of soil information alone.</p><details class="development-score-details"><summary>Model and comparison details</summary><p>9×9 is the neighborhood read by the model’s first layer; its second layer remains 1×1. Temperature error is measured as root-mean-square error.</p><table><caption>Valley temperature difference (K)</caption><thead><tr><th scope="col">Period</th><th scope="col">H100 9×9</th><th scope="col">${COMPARISON}</th></tr></thead><tbody><tr><th scope="row">Four-week 2019</th><td>0.767 K</td><td>0.861 K</td></tr><tr><th scope="row">July</th><td>1.260 K</td><td>1.211 K</td></tr></tbody></table></details>`;}
+  function resourceHTML(){return `<div class="development-resource-grid"><article class="development-resource-card" id="development-frontier-card" data-resource-role="frontier"><header><h3>Frontier</h3>${connectionBadge('frontier')}</header><p class="development-machine-role">Data preparation record</p><p><strong>153 weekly examples</strong>, then the root-zone soil copy.</p><p>The dates and the destination were already written down. Connection status does not recheck those files.</p></article><article class="development-resource-card" id="development-h100-card" data-resource-role="h100"><header><h3>H100 / CCSI</h3>${connectionBadge('ccsi')}</header>${h100Content()}</article><article class="development-resource-card" id="development-lux-card" data-resource-role="lux"><header><h3>Lux</h3>${connectionBadge('lux')}</header><p class="development-machine-role">Other recorded run names</p><ul class="development-run-list">${LUX_RUNS.map(name=>`<li><code>${esc(name)}</code></li>`).join('')}</ul></article><article class="development-resource-card" id="development-odo-card" data-resource-role="odo"><header><h3>Odo</h3>${connectionBadge('odo')}</header><p class="development-machine-role">Project resource connection</p><p>Connection status is read-only here.</p></article></div>`;}
+  function scoreHTML(){return assets.scoreMap?`<figure class="development-score-figure"><img src="${esc(assets.scoreMap)}" alt="Supplied valley temperature score figure for 16–22 April 2019"><figcaption>16–22 April 2019 · Score returned to the project ledger.</figcaption></figure>`:`<div class="development-score-empty" role="img" aria-label="April map supplied for the demo"><span>April map supplied for the demo.</span><small>16–22 April 2019</small></div>`;}
+  function stageDetailHTML(){
+    const stage=STAGES.find(s=>s.id===selectedStage)||STAGES[0],index=STAGES.indexOf(stage),next=STAGES[index+1];
+    return `<div class="development-stage-copy"><p class="development-stage-label">Viewing step ${index+1} of ${STAGES.length} · Recorded work</p><h2>${stage.title}</h2><p class="development-stage-lead">${esc(stage.lead)}</p><p>${esc(stage.copy)}</p><p class="development-stage-takeaway">${esc(stage.takeaway)}</p><div class="development-stage-actions">${stage.nav?`<button type="button" class="text-button" data-headwater-nav="${stage.nav}">${stage.action} ↗</button>`:''}${stage.question?`<button type="button" class="text-button" data-headwater-question="${stage.question}">${stage.action} ↗</button>`:''}${next?`<button type="button" class="text-button development-next" data-headwater-stage-go="${next.id}">Next: ${next.title} <span aria-hidden="true">→</span></button>`:`<button type="button" class="text-button development-next" data-headwater-stage-go="hypothesis">Return to the question <span aria-hidden="true">↺</span></button>`}</div>${stage.id==='design'?'<details class="development-score-details"><summary>Model detail</summary><p>The recorded soil-input model uses a 9×9 first convolution and a 1×1 second convolution.</p></details>':''}${stage.id==='downscale'?downscaleHTML():''}${stage.id==='score'?comparisonFiguresHTML()+'<details class="development-score-details"><summary>April case evidence</summary>'+scoreHTML()+'<p class="development-rain-record">For the same April week: observed <strong>55.9 mm</strong>, '+COMPARISON+' <strong>24.4 mm</strong>, 9×9 map <strong>24.7 mm</strong>. These are weekly totals. The map redrew the historical week.</p><button type="button" class="text-button" data-headwater-nav="network">Open the TVA case ↗</button></details>':''}</div>`;
   }
-  function detailHTML(id) {
-    if (id === 'hypothesis') return `<h3>Hypothesis</h3><p>Ledger, then Proposer, Critic, Referee. The lab starts from what was already scored.</p><button type="button" class="text-button" data-hw-nav="introduction">Open Hypothesis lab</button>`;
-    if (id === 'data') return `<h3>Data</h3><p>Frontier. <strong>153</strong> weekly examples, then the root-zone soil copy. The dates and the destination were already written down. The dataset agent runs that committed job.</p>`;
-    if (id === 'design') return `<h3>Design</h3><p>The brief names one change. A person picks that experiment and sets the training flag.</p><button type="button" class="text-button" data-hw-question="brief">Ask this in the chat</button>`;
-    if (id === 'execution') return `<h3>Execution</h3><p>The same brief is the job. The H100s (<code>ccsi-gpu</code>) are where <code>det_v2_soil_k9</code> was trained. Lux holds the nine scored run directories below.</p>${luxHTML()}`;
-    if (id === 'score') return `<h3>Score</h3>${scoreHTML()}<button type="button" class="text-button" data-hw-question="score">Ask this in the chat</button>`;
-    if (id === 'downscale') return `<h3>Downscaling example</h3>${downscaleHTML()}`;
-    return '';
+  function historyHTML(){return `<div class="development-history-intro"><p>Development records · October–November 2026</p><h2 id="development-history-title">How the record leads to the next decision</h2><p>These are document dates, not reported training start or completion times. The weather test weeks are in 2019.</p></div><div class="development-table-wrap"><table class="development-history-table"><thead><tr><th scope="col">Record date</th><th scope="col">What was recorded</th><th scope="col">What follows from it</th></tr></thead><tbody>${HISTORY.map(row=>`<tr><th scope="row"><time datetime="${row.date}">${row.label}</time></th><td><strong>${esc(row.title)}</strong><p>${esc(row.record)}</p>${sourceLink(row.source)}</td><td>${esc(row.next)}</td></tr>`).join('')}</tbody></table></div><button type="button" class="text-button development-history-ask" data-headwater-question="history">Ask for this development history in Case Lab ↗</button>`;}
+  function boardHTML(){return `<section class="development-board" aria-labelledby="development-board-title"><div class="development-section-heading"><div><h2 id="development-board-title">Development board</h2><p>12 November 2026 · Supplied demo record</p></div><p class="development-flags"><span>H100 training flag: <strong>off</strong></span><span>Lux training flag: <strong>off</strong></span></p></div><p class="development-support-note">This dated record describes checks and proposed work. Historical flags do not grant permission for a new run.</p><div class="development-table-wrap"><table><thead><tr><th scope="col">Item</th><th scope="col">Where / state</th><th scope="col">Recorded scope</th></tr></thead><tbody>${BOARD.map(row=>`<tr${row.isRow===false?' class="development-not-row"':''}><th scope="row">${esc(row.title)}</th><td>${esc(row.where)}</td><td>${esc(row.copy)}</td></tr>`).join('')}</tbody></table></div></section>`;}
+  function videoHTML(){return `<section class="development-video-mount" data-headwater-video${assets.video&&assets.captions?'':' hidden'}>${assets.video&&assets.captions?`<video controls playsinline preload="none" poster="${POSTER}" aria-label="Water4Energy workbench demonstration"><source src="${VIDEO_PATH}" type="video/mp4"><track kind="captions" src="${CAPTIONS_PATH}" srclang="en" label="English" default></video>`:''}</section>`;}
+  function renderHTML(){return `${videoHTML()}<header class="development-heading"><p class="journey-kicker">Water4Energy project workflow</p><h1>HEADWATER development</h1><p>Follow one recorded example: testing a small weather model that uses soil conditions and nearby locations.</p><p class="development-record-label">Development records: October–November 2026 · Weather test weeks: 2019</p></header><nav class="development-stages" aria-label="Explore the six development steps and examples">${STAGES.map((s,i)=>`<button type="button" data-development-stage="${s.id}" aria-pressed="${s.id===selectedStage}" aria-controls="development-stage-detail"><span>Step ${i+1}</span><strong>${s.title}</strong><small>${s.summary}</small></button>`).join('')}</nav><div class="development-story-layout"><section class="development-stage-detail" id="development-stage-detail" aria-live="polite">${stageDetailHTML()}</section><aside class="development-key-result" aria-label="Recorded temperature result">${resultHTML()}</aside></div><div class="development-next-decision"><strong>What comes next?</strong><p>Use the remaining weaknesses to define one changed test. A person chooses the brief and approves any future execution.</p></div><details class="development-disclosure development-history"><summary><span>Development history</span><small>Four dated records and their conclusions</small></summary>${historyHTML()}</details><details class="development-disclosure"><summary><span>Machines and supporting records</span><small>Frontier, H100 / CCSI, Lux and Odo</small></summary><section class="development-machines"><div class="development-section-heading"><h2>Machines and recorded work</h2><button type="button" class="text-button" data-headwater-nav="network">Open the TVA case ↗</button></div>${resourceHTML()}</section></details><details class="development-disclosure"><summary><span>Planned work and human review</span><small>The supplied 12 November board</small></summary>${boardHTML()}</details>`;}
+  function evidenceTopicForRequest(text){
+    if(typeof text!=='string')return 'overview';
+    const first=text.trim().split(/\r?\n/,1)[0],known=QUESTIONS.find(q=>q.question===first);
+    if(known)return known.id;
+    const method=Object.keys(METHOD_QUESTIONS).find(id=>METHOD_QUESTIONS[id]===first);if(method)return METHOD_TOPICS[method];
+    if(first==='How did this HEADWATER development cycle unfold?')return 'history';
+    if(first==='What do the supplied April 2019 monthly downscaling maps show?')return 'downscale';
+    return 'overview';
   }
-  const STAGES = [['hypothesis','Hypothesis'],['data','Data'],['design','Design'],['execution','Execution'],['score','Score'],['downscale','Downscaling']];
-  function stageButtons() {
-    return STAGES.map(([id, label], i) => `<button type="button" class="hw-stage${id === selected ? ' selected' : ''}" data-hw-stage="${id}" aria-pressed="${id === selected}"><span>${i + 1}</span>${label}</button>`).join('');
+  function evidenceSourceHTML(topic){
+    if(topic==='downscale')return '<details class="headwater-evidence-sources"><summary>Sources and details</summary><p>'+sourceLink('https://github.com/daliwang/water4energy_SC26Demo/tree/'+FIGURE_COMMIT+'/Water4Energy-Workbench/public/assets','Supplied monthly maps')+'</p><p>'+sourceLink('/assets/dali-figures-provenance.json','Figure provenance and file hashes')+'</p></details>';
+    const row=HISTORY.find(r=>topic==='data'||topic==='board'?r.date==='2026-11-12':topic==='brief'?r.date==='2026-10-26':r.date==='2026-10-24');
+    return `<details class="headwater-evidence-sources"><summary>Sources and details</summary><p>${sourceLink(row.source,row.title+' · '+row.label)}</p>${topic==='ledger'||topic==='score'||topic==='overview'?'<p>'+sourceLink(HISTORY[3].source,'Supplied development record · 12 Nov 2026')+'</p>':''}<p>Saved documentation is the source for this panel. A chat answer and its actual tool activity appear separately.</p></details>`;
   }
-  function boardHTML() {
-    const rows = [
-      ['April rain rank', 'Frontier', 'Reads the soil files. No GPU.'],
-      ['Lux device check', 'Lux, one MI355X', 'Prints the device name. Does not train.'],
-      ['Column water E_tcwv_9x9', 'Designed', 'Waits on the rank file and a person.'],
-      ['90-day daily filter', 'Designed', 'An odd temporal kernel cannot see all 90 days.'],
-      ['Temporal attention along the 90 days', 'Not a row', 'No script and no board row.']
-    ];
-    return `<section class="hw-board"><h2>Board · 12 November 2026</h2><p>Both training flags are off.</p><table><thead><tr><th>Row</th><th>Where</th><th>What the card may say</th></tr></thead><tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${esc(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`;
-  }
-  function renderDetail() {
-    const mount = global.document?.querySelector?.('#hw-stage-detail');
-    if (!mount) return;
-    mount.innerHTML = detailHTML(selected);
-    global.document.querySelectorAll('[data-hw-stage]').forEach(button => {
-      const on = button.dataset.hwStage === selected;
-      button.setAttribute('aria-pressed', String(on));
-      button.classList.toggle('selected', on);
-    });
-  }
-  function render() {
-    const root = global.document?.querySelector?.('#headwater-workflow');
-    if (!root) return false;
-    root.innerHTML = `<div class="hw-stages" role="group" aria-label="HEADWATER development stages">${stageButtons()}</div><div id="hw-stage-detail" class="hw-detail"></div>${boardHTML()}`;
-    renderDetail();
+  function renderContextEvidence(container,{topic='overview'}={}){
+    const target=typeof container==='string'?global.document?.querySelector(container):container;if(!target)return false;
+    const titles={overview:'The recorded example',ledger:'What earlier tests established',brief:'Which change was selected?',data:'The documented inputs',board:'Task states and human review',score:'What the result means',history:'The development history',downscale:'The monthly downscaling example'};
+    if(!Object.hasOwn(titles,topic))topic='overview';
+    let content='';
+    if(topic==='downscale')content=downscaleHTML();
+    else if(topic==='brief')content='<h3>A brief names one change</h3><p>The documented workflow carries the chosen design through data preparation, execution and scoring. The public summary describes the 26 October referee note as the next-round brief at the time of that record.</p><h3>Read the dated source</h3><p>Ask the local reader for the saved proposal and review. A written proposal and permission to run it are separate records; do not infer a current selection from this historical summary.</p>';
+    else if(topic==='data')content='<h3>153 weekly examples</h3><p>The supplied preparation record lists the weekly examples and a copy with root-zone soil information: water held in soil that plant roots can reach.</p><h3>Use the dated record</h3><p>The dates and destination were already written down. This panel explains that documented preparation; it does not check current remote files.</p>';
+    else if(topic==='board')content='<h3>Both supplied training flags are off</h3><p>The 12 November demo record keeps H100 and Lux training flags off. A person still chooses and approves any future execution.</p><h3>Read status and permission separately</h3><p>The supplied board names data/device checks and designed follow-up work. A dated status does not give permission for a new run.</p>';
+    else if(topic==='history')content=`<ol class="headwater-record-list">${HISTORY.map(row=>`<li><time datetime="${row.date}">${row.label}</time><h3>${esc(row.title)}</h3><p>${esc(row.record)}</p><p><strong>Next decision:</strong> ${esc(row.next)}</p>${sourceLink(row.source)}</li>`).join('')}</ol><p class="development-support-note">Document dates in 2026 are separate from the weather test weeks in 2019.</p>`;
+    else content=resultHTML()+'<h3>What remains unresolved?</h3><p>The model still misses much of the wet April week’s rain and does not improve every test week. The temperature result does not isolate the effect of soil information alone.</p><h3>Next decision</h3><p>Define one changed test from the recorded weaknesses, then have a person select and review the brief before future execution.</p>'+(topic==='score'?comparisonFiguresHTML()+(assets.scoreMap?scoreHTML():''):'');
+    const recordLabels={overview:"Project record · 12 November 2026",ledger:"Public summary · through 24 October 2026",brief:"Public summary · 26–27 October 2026",data:"Supplied preparation record · 12 November 2026",board:"Supplied board · 12 November 2026",score:"Supplied comparison · 12 November 2026",history:"Record dates · October–November 2026",downscale:"Supplied maps · April 2019 · 30 days"};
+    target.innerHTML=`<header class="headwater-evidence-heading"><h2>${titles[topic]}</h2><p>${recordLabels[topic]}</p><span class="headwater-evidence-mode">Saved development evidence</span></header><section class="headwater-evidence-record" data-evidence-topic="${topic}">${content}</section>${evidenceSourceHTML(topic)}`;
     return true;
   }
-  function onClick(event) {
-    const target = event.target?.closest?.('[data-hw-stage],[data-hw-question],[data-hw-nav]');
-    if (!target || !target.closest?.('#view-headwater, #headwater-workflow')) return;
-    if (target.dataset.hwStage) { selected = target.dataset.hwStage; renderDetail(); return; }
-    if (target.dataset.hwNav && typeof options.navigate === 'function') {
-      if (target.dataset.hwNav === 'introduction') global.TVACaseJourney?.setContext?.('lab');
-      options.navigate(target.dataset.hwNav);
-      return;
-    }
-    const text = requestFor(target.dataset.hwQuestion);
-    if (text && typeof options.preparePrompt === 'function') options.preparePrompt(text);
-  }
-  function mountVideo() {
-    const video = global.document?.querySelector?.('#hw-video');
-    if (!video) return;
-    video.hidden = true;
-    video.addEventListener('loadeddata', () => { video.hidden = false; });
-    video.src = '/assets/water4energy-workbench-90s.mp4';
-  }
-  function init(settings) {
-    options = settings || {};
-    if (!bound && global.document?.addEventListener) { global.document.addEventListener('click', onClick); bound = true; }
-    render();
-    mountVideo();
-    return true;
-  }
-  const api = {questions: QUESTIONS, requestFor, luxHTML, scoreHTML, downscaleHTML, exampleHTML: downscaleHTML, stages: STAGES, render, init};
-  global.Water4EnergyWorkbench = api;
-  if (typeof module !== 'undefined' && module.exports) module.exports = api;
-})(typeof window !== 'undefined' ? window : globalThis);
+  function selectStage(id){if(!STAGES.some(s=>s.id===id))return false;selectedStage=id;if(mount){mount.querySelectorAll('[data-development-stage]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.developmentStage===id)));const detail=mount.querySelector('#development-stage-detail');if(detail)detail.innerHTML=stageDetailHTML();}return true;}
+  function setResources(value){resources=Array.isArray(value)?value.filter(r=>r&&typeof r==='object'):[];if(mount)mount.querySelectorAll('[data-development-connection]').forEach(label=>label.textContent='Connection: '+statusLabel(label.dataset.developmentConnection));}
+  function setAssets(value={}){assets={video:value.video===VIDEO_PATH?VIDEO_PATH:null,captions:value.captions===CAPTIONS_PATH?CAPTIONS_PATH:null,scoreMap:SCORE_PATHS.has(value.scoreMap)?value.scoreMap:null};if(mount){const video=mount.querySelector('[data-headwater-video]');if(video){video.outerHTML=videoHTML();}if(selectedStage==='score'){const detail=mount.querySelector('#development-stage-detail');if(detail)detail.innerHTML=stageDetailHTML();}}return {...assets};}
+  function dispatch(event){const target=event.target?.closest?.('[data-development-stage],[data-headwater-stage-go],[data-headwater-question],[data-headwater-nav]');if(!target||target.disabled)return;if(target.dataset.developmentStage){selectStage(target.dataset.developmentStage);return;}if(target.dataset.headwaterStageGo){selectStage(target.dataset.headwaterStageGo);return;}if(target.dataset.headwaterNav){if(['introduction','network','workspace','development'].includes(target.dataset.headwaterNav))options.navigate?.(target.dataset.headwaterNav);return;}const request=questionRequest(target.dataset.headwaterQuestion);if(request)options.prepareQuestion?.(request);}
+  function init(settings={}){options=settings;selectedStage='hypothesis';resources=[];assets={};mount=global.document?.querySelector('#headwater-workflow');if(!mount)return false;mount.innerHTML=renderHTML();if(!bound){global.document.addEventListener('click',dispatch);bound=true;}if(settings.assets)setAssets(settings.assets);return true;}
+  const api={init,renderHTML,selectStage,questionRequest,methodRequest,welcomeHTML,questionMenuHTML,renderContextEvidence,evidenceTopicForRequest,setResources,setAssets,suppliedFigureHTML,comparisonFiguresHTML,downscaleHTML,FIGURES,FIGURE_COMMIT,STAGES,BOARD,QUESTIONS,CONTEXTS,TRAINING_FLAGS,LUX_RUNS,COMPARISON,HISTORY,ANSWER_PROFILES,stages:STAGES,board:BOARD,questions:QUESTIONS,contexts:CONTEXTS};
+  global.Water4EnergyWorkflow=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+})(typeof window!=='undefined'?window:globalThis);

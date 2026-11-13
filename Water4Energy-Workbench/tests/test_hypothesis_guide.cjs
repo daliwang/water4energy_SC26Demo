@@ -443,6 +443,67 @@ test('one focused figure survives refresh and manual review holds when new conve
   assert.doesNotMatch(gallery.html,/<img/);
 });
 
+test('a newly displayed manifest figure focuses its checked case card without adding a duplicate',()=>{
+  const {guide,root,gallery}=fixture();
+  guide.init({caseDefinition,prompts});
+  guide.setCaseFigures([caseFigure(),caseFigure('runoff','runoff.png')]);
+  const displayed={...conversationFigure('runoff.png'),displayId:'run-1/call-1/2026-11-13T03:00:00.000Z',shownAt:'2026-11-13T03:00:00.000Z'};
+  guide.setConversationFigures([displayed]);
+  assert.match(gallery.html,/evidence-figure-heading"><h3>runoff/);
+  assert.match(gallery.html,/Case figures · April metadata checked/);
+  assert.match(gallery.html,/Source JSON/);
+  assert.equal(gallery.buttons.length,2);
+  assert.equal(root.figureCount.textContent,'2 figures');
+  const writes=gallery.writes;
+  guide.setCaseFigures([caseFigure(),caseFigure('runoff','runoff.png')]);
+  guide.setConversationFigures([{...displayed}]);
+  assert.equal(gallery.writes,writes,'an unchanged poll must retain the image DOM');
+  assert.equal(gallery.focused,0);
+  assert.equal(gallery.scrolled,0);
+});
+
+test('redisplaying the same case filename in a later turn follows its new display identity',()=>{
+  const {guide,root,gallery}=fixture();
+  guide.init({caseDefinition,prompts});
+  guide.setCaseFigures([caseFigure(),caseFigure('runoff','runoff.png')]);
+  const first={...conversationFigure('runoff.png'),displayId:'run-1/call-1/2026-11-13T03:00:00.000Z'};
+  guide.setConversationFigures([first]);
+  guide.selectFigure(0,true);
+  assert.match(gallery.html,/evidence-figure-heading"><h3>temperature/);
+  guide.beginTurn();
+  guide.setConversationFigures([{...first,displayId:'run-2/call-2/2026-11-13T04:00:00.000Z'}]);
+  assert.match(gallery.html,/evidence-figure-heading"><h3>runoff/);
+  assert.equal(root.mode.textContent,'Following conversation');
+});
+
+test('manual inspection holds during new case displays and Resume follows the latest actual figure',()=>{
+  const {guide,root,gallery}=fixture();
+  guide.init({caseDefinition,prompts});
+  guide.setCaseFigures([caseFigure(),caseFigure('precipitation','rain.png'),caseFigure('runoff','runoff.png')]);
+  guide.selectFigure(1,true);
+  guide.setConversationFigures([{...conversationFigure('runoff.png'),displayId:'run-1/call-1/2026-11-13T03:00:00.000Z'}]);
+  assert.match(gallery.html,/evidence-figure-heading"><h3>precipitation/);
+  assert.equal(root.mode.textContent,'Manual review');
+  root.resume.click();
+  assert.match(gallery.html,/evidence-figure-heading"><h3>runoff/);
+  assert.equal(root.mode.textContent,'Following conversation');
+});
+
+test('reopening a conversation selects its latest current display and reset removes that selection',()=>{
+  const {guide,gallery}=fixture();
+  guide.init({caseDefinition,prompts});
+  guide.setCaseFigures([caseFigure(),caseFigure('runoff','runoff.png')]);
+  guide.resetConversation();
+  guide.setConversationFigures([
+    {...conversationFigure('extra.png'),displayId:'run-1/call-1/2026-11-13T03:00:00.000Z'},
+    {...conversationFigure('runoff.png'),displayId:'run-1/call-2/2026-11-13T04:00:00.000Z'},
+  ]);
+  assert.match(gallery.html,/evidence-figure-heading"><h3>runoff/);
+  guide.resetConversation();
+  assert.match(gallery.html,/evidence-figure-heading"><h3>temperature/);
+  assert.equal(gallery.buttons.length,2);
+});
+
 
 test('the interactive workflow stays open for exploration and yields space to actual saved evidence',()=>{
   const {guide,root}=fixture();

@@ -9,3 +9,6 @@ __pycache__/
 venv/
 *.log
 *.zip
+
+# Authorized local science payloads must not enter this public repository.
+backend/

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "source_repository": "daliwang/water4energy_SC26Demo",
+  "source_commit": "d0199a817ddbfa0fbf65c9e81d9fcc53081611ee",
+  "source_kind": "Dali-supplied static figures",
+  "files": [
+    {
+      "filename": "tva_t2m_2019_reslim.png",
+      "path": "/assets/tva_t2m_2019_reslim.png",
+      "source_path": "Water4Energy-Workbench/public/assets/tva_t2m_2019_reslim.png",
+      "source_url": "https://github.com/daliwang/water4energy_SC26Demo/blob/d0199a817ddbfa0fbf65c9e81d9fcc53081611ee/Water4Energy-Workbench/public/assets/tva_t2m_2019_reslim.png",
+      "sha256": "dc9a509ccc806f0849aec85cbac1efd360bd13d43e8df5bb5356d73a8fc65c37",
+      "width": 1983,
+      "height": 1593,
+      "title": "Four saved 2019 weeks: temperature model comparison",
+      "scope": "four_2019_weeks",
+      "units": "2 m air temperature (°C)",
+      "interpretation_note": "Reference, observed, 9×9 CNN, Reslim 6°, Reslim 2°. These maps do not show the 24 October soil-residual run."
+    },
+    {
+      "filename": "tva_precip_2019_reslim.png",
+      "path": "/assets/tva_precip_2019_reslim.png",
+      "source_path": "Water4Energy-Workbench/public/assets/tva_precip_2019_reslim.png",
+      "source_url": "https://github.com/daliwang/water4energy_SC26Demo/blob/d0199a817ddbfa0fbf65c9e81d9fcc53081611ee/Water4Energy-Workbench/public/assets/tva_precip_2019_reslim.png",
+      "sha256": "ba0f188af002812c584a7ccea80830ddfc980c6461fc1a39b48914aa53e7c894",
+      "width": 1963,
+      "height": 1593,
+      "title": "Four saved 2019 weeks: precipitation model comparison",
+      "scope": "four_2019_weeks",
+      "units": "Weekly precipitation totals (mm)",
+      "interpretation_note": "Reference, observed, 9×9 CNN, Reslim 6°, Reslim 2°. These maps do not show the 24 October soil-residual run."
+    },
+    {
+      "filename": "valley_temperature_2019.png",
+      "path": "/assets/valley_temperature_2019.png",
+      "source_path": "Water4Energy-Workbench/public/assets/valley_temperature_2019.png",
+      "source_url": "https://github.com/daliwang/water4energy_SC26Demo/blob/d0199a817ddbfa0fbf65c9e81d9fcc53081611ee/Water4Energy-Workbench/public/assets/valley_temperature_2019.png",
+      "sha256": "5e7266f43b59db7ea7738603011875ce6dc57c0f745fcd4112dcd2e2ef2e7e73",
+      "width": 1983,
+      "height": 1593,
+      "title": "Four saved 2019 weeks: CNN neighborhood comparison",
+      "scope": "four_2019_weeks",
+      "units": "2 m air temperature (°C)",
+      "interpretation_note": "Reference, observed, 1×1 CNN, 3×3 CNN, 9×9 CNN. This is not the Reslim comparison."
+    },
+    {
+      "filename": "april_2019_tmax_refine.png",
+      "path": "/assets/april_2019_tmax_refine.png",
+      "source_path": "Water4Energy-Workbench/public/assets/april_2019_tmax_refine.png",
+      "source_url": "https://github.com/daliwang/water4energy_SC26Demo/blob/d0199a817ddbfa0fbf65c9e81d9fcc53081611ee/Water4Energy-Workbench/public/assets/april_2019_tmax_refine.png",
+      "sha256": "bf428289b997f11050951470f42c97c6afe3d871566974adb2d224884e391e97",
+      "width": 3520,
+      "height": 1870,
+      "title": "April 2019 monthly downscaling: daily maximum temperature",
+      "scope": "april_2019_month_30_days",
+      "units": "Daily maximum temperature mean and daily 95th percentile (°C)",
+      "interpretation_note": "1° to 1/24° (about 4 km). REFINED, Daymet/ERA5, difference. Not the protected 16–22 April weekly Trial 0 comparison; no claim of a coupled HEADWATER-downscaling pipeline."
+    },
+    {
+      "filename": "april_2019_prcp_refine.png",
+      "path": "/assets/april_2019_prcp_refine.png",
+      "source_path": "Water4Energy-Workbench/public/assets/april_2019_prcp_refine.png",
+      "source_url": "https://github.com/daliwang/water4energy_SC26Demo/blob/d0199a817ddbfa0fbf65c9e81d9fcc53081611ee/Water4Energy-Workbench/public/assets/april_2019_prcp_refine.png",
+      "sha256": "5307f90f25af6e7741aa2a4f021e52e48cdbaf825694923c488d2ea4bb86470d",
+      "width": 3520,
+      "height": 1870,
+      "title": "April 2019 monthly downscaling: precipitation",
+      "scope": "april_2019_month_30_days",
+      "units": "Mean daily precipitation and daily 95th percentile (mm/day)",
+      "interpretation_note": "1° to 1/24° (about 4 km). REFINED, Daymet/ERA5, difference. Not weekly totals or the protected Trial 0 weekly comparison; no coupled-pipeline claim."
+    }
+  ]
+}

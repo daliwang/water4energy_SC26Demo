@@ -1,0 +1,52 @@
+/* One conversation on the left; the selected story or evidence stays on the right. */
+.context-switcher[hidden],#conversation-dock[hidden],#project-live-evidence[hidden],#lab24-evidence[hidden]{display:none!important}
+.context-pills{display:flex;flex-wrap:wrap;gap:6px;padding:0 20px 12px;flex-shrink:0}
+.context-pills button{border:1px solid var(--line);border-radius:16px;background:#fff;padding:5px 9px;color:var(--text-secondary);font-size:11px;line-height:1.5;text-align:left}
+.context-pills button[aria-pressed=true]{color:var(--ornl-green);border-color:var(--ornl-green);background:#f0f7f2;font-weight:600}
+.context-pills button:disabled{opacity:.55;cursor:wait}
+#conversation-dock{min-width:0;min-height:0}
+#conversation-dock>.agent-panel{height:100%;min-height:0;max-height:none;margin:0;display:flex;flex-direction:column;overflow:hidden}
+.research-theme #conversation-dock .demo-agent-primary>.panel-heading{height:auto;min-height:0;padding:18px 20px 12px;flex-wrap:wrap;align-items:flex-start;gap:10px;border-bottom:0}
+.research-theme #conversation-dock .demo-status-bar{padding:0 20px 12px;font-size:12px;line-height:1.6;background:#fff;flex-shrink:0;align-items:flex-start}
+.research-theme #conversation-dock .demo-status-bar .text-button{font-size:11px;text-align:right;min-width:70px}
+.research-theme #conversation-dock .welcome{padding:12px 0}
+.research-theme #conversation-dock .welcome h3{font-size:23px;line-height:1.3;margin:0 0 12px;color:var(--genesis-navy)}
+.research-theme #conversation-dock .welcome p{font-size:14px;line-height:1.7}
+.research-theme #conversation-dock .chat-messages{padding:20px;gap:16px}
+.research-theme #conversation-dock .composer{margin:0 20px 18px;box-shadow:none;border-color:var(--line);border-radius:5px;background:#fff}
+.research-theme #conversation-dock .composer textarea{font-size:15px;line-height:1.65;padding:12px 14px}
+.research-theme #conversation-dock .activity-drawer{margin:0 20px}
+body.chat-beside .app-shell>main{display:grid;grid-template-columns:minmax(330px,1fr) minmax(0,1.22fr);gap:18px;align-items:start}
+body.chat-beside #conversation-dock{grid-column:1;grid-row:1;position:sticky;top:16px;height:calc(100dvh - 125px)}
+body.chat-beside .view.active{grid-column:2;grid-row:1;min-width:0}
+body.chat-beside .method-case-grid{display:block}
+body.chat-beside .case-brief{margin-top:22px;border-left:0;border-top:1px solid var(--line);padding:18px 0 0}
+body.chat-beside .journey-heading h1,body.chat-beside .development-heading h1{font-size:27px}
+body.chat-beside .development-story-layout{grid-template-columns:1fr}
+body.chat-beside .development-stages{grid-template-columns:repeat(3,minmax(0,1fr))}
+body.chat-beside .development-example{min-width:0}
+#lab24-evidence{height:100%;min-height:0;min-width:0;overflow:auto;border:0;border-left:1px solid var(--line);border-radius:0;padding:20px 24px;background:#fff;scrollbar-gutter:stable}
+#view-compute .resource-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.compute-note{font-size:14px;line-height:1.7;color:var(--text-secondary);margin:20px 0 12px}
+.project-live-evidence{padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:5px;margin-bottom:18px}
+.project-live-evidence h2{font-size:19px;margin:0 0 7px;color:var(--genesis-navy)}
+.project-live-evidence>p{font-size:12px;line-height:1.6;color:var(--text-secondary);margin:0 0 10px}
+.project-live-evidence img{display:block;width:100%;max-height:440px;object-fit:contain;background:#fff}
+.project-live-evidence figcaption{font-size:12px;line-height:1.5;overflow-wrap:anywhere;margin-top:9px;color:var(--text-secondary)}
+.project-figure-actions,.project-figure-strip{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.project-figure-actions a,.project-figure-strip button{font-size:12px;color:var(--ornl-green)}
+.project-figure-strip button{border:0;border-bottom:2px solid transparent;background:none;padding:6px 0;text-align:left;overflow-wrap:anywhere}
+.project-figure-strip button[aria-pressed=true]{border-color:var(--ornl-green)}
+@media(max-width:1100px){#lab24-evidence{height:auto;overflow:visible;border-left:0;border-top:1px solid var(--line)}body.chat-beside .app-shell>main{grid-template-columns:minmax(300px,.9fr) minmax(0,1fr);gap:14px}}
+@media(max-width:800px){body.chat-beside .app-shell>main{display:block}body.chat-beside #conversation-dock{position:static;height:650px;margin-bottom:20px}#lab24-evidence{padding:20px 17px}#view-compute .resource-cards{grid-template-columns:1fr}.context-pills{padding-left:17px;padding-right:17px}}
+
+body.chat-beside .development-stage-detail{margin-bottom:18px}body.chat-beside .development-key-result{max-width:none}
+@media(min-width:1101px){
+  body.chat-beside{overflow:hidden}
+  body.chat-beside .app-shell{height:100dvh;display:flex;flex-direction:column}
+  body.chat-beside .app-shell>.topbar{flex-shrink:0}
+  body.chat-beside .app-shell>main{flex:1;min-height:0;padding:16px 20px 12px;align-items:stretch}
+  body.chat-beside #conversation-dock{position:static;height:100%}
+  body.chat-beside .view.active{height:100%;min-height:0;overflow:auto;overscroll-behavior:contain;padding-right:8px;scrollbar-gutter:stable}
+}
+@media(min-width:1101px){body.chat-beside .development-stages{grid-template-columns:repeat(6,minmax(0,1fr))}body.chat-beside .development-stages button{padding:10px 7px;gap:3px}body.chat-beside .development-stages button>strong{font-size:12px;line-height:1.4}body.chat-beside .development-stages button>small{font-size:10px;line-height:1.45}body.chat-beside .development-stages button:nth-child(n+4){border-top:0}body.chat-beside .development-stages button:nth-child(4){border-left:1px solid var(--line)}}

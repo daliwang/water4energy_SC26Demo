@@ -7,7 +7,7 @@
   const RASTER = /\.(?:png|jpe?g|gif|webp)$/i;
   const $ = selector => document.querySelector(selector);
   const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let options = null, definition = null, context = null, evidence = null, revision = 0;
+  let options = null, definition = null, context = null, capabilities = null, evidence = null, revision = 0;
   const damState = {enabled:false,reservoir:'',rule:'',source:null,sourceName:null};
 
   function validPath(value) {
@@ -58,12 +58,14 @@
   }
   function skillReadiness(skills, expectedProject) {
     const known=Boolean(skills?.project_found && skills.project===expectedProject && Number.isInteger(skills.count));
-    const loaded=new Set(known?(skills.skills || []).filter(skill=>skill && typeof skill.name==='string').map(skill=>skill.name):[]);
+    const names=known?(skills.skills || []).filter(skill=>skill && typeof skill.name==='string').map(skill=>skill.name):[];
+    // Current VISTA requires kebab-case names; the demo retains its original contract IDs.
+    const loaded=new Set([...CORE_SKILLS,'dam.readout'].filter(id=>names.includes(id)||names.includes(id.replace(/[._]/g,'-'))));
     return {known,loaded:known?CORE_SKILLS.filter(name=>loaded.has(name)).length:null,
       required:CORE_SKILLS.map(name=>({name,state:known?(loaded.has(name)?'loaded':'missing'):'unknown'})),
       optional:known?(loaded.has('dam.readout')?'loaded':'missing'):'unknown'};
   }
-  function normalizeName(value) {return String(value || '').replace(/\\/g,'/').toLowerCase().replace(/[^a-z0-9/]+/g,' ').trim();}
+  function normalizeName(value) {return String(value || '').replace(/\\/g,'/').replace(/\.(?:md|txt|pdf|json)$/i,'').toLowerCase().replace(/[^a-z0-9/]+/g,' ').trim();}
   function sourceMatches(source, document) {
     const filename=String(document.filename || '').replace(/\\/g,'/');
     const title=normalizeName(document.title);
@@ -123,12 +125,13 @@
   }
   function prepare(task, title) {options.preparePrompt(casePrompt(task),title);}
   function renderReadiness() {
-    const skills=skillReadiness(context?.skills,definition.project);
-    const knowledge=context?.knowledge,coverage=knowledgeCoverage(knowledge,definition.sources,definition.project);
-    const correctProject=context?.project===definition.project;
-    const connected=correctProject && context?.status?.project_found;
+    const current=capabilities||context;
+    const skills=skillReadiness(current?.skills,definition.project);
+    const knowledge=current?.knowledge,coverage=knowledgeCoverage(knowledge,definition.sources,definition.project);
+    const correctProject=current?.project===definition.project;
+    const connected=correctProject && current?.status?.project_found;
     const kbKnown=coverage.known;
-    if($('#demo-readiness'))$('#demo-readiness').innerHTML=`<article class="demo-readiness-card"><span class="eyebrow">VISTA PROJECT</span><h3>${connected?'Connected':correctProject?'Awaiting project':'Choose demo project'}</h3><p>${escapeHTML(correctProject?(context?.status?.detail || definition.project):`Selected: ${context?.project || 'not connected'}`)}</p><small>${escapeHTML(definition.project)}</small></article><article class="demo-readiness-card"><span class="eyebrow">REQUIRED SKILLS</span><h3>${skills.known?skills.loaded+' / 8 loaded':'Not checked'}</h3><p>Eight core file-reading skills. Dam readout is optional.</p><small>Loaded status is not an execution result.</small></article><article class="demo-readiness-card"><span class="eyebrow">KNOWLEDGE BASE</span><h3>${kbKnown?`${knowledge.ready_count ?? '—'} / ${knowledge.count} indexes ready`:'Not checked'}</h3><p>${coverage.known?`${coverage.listed} / 6 lead sources listed`:'Lead-source coverage is unverified.'}</p><small>Index readiness and required-source coverage are checked separately.</small></article>`;
+    if($('#demo-readiness'))$('#demo-readiness').innerHTML=`<article class="demo-readiness-card"><span class="eyebrow">VISTA PROJECT</span><h3>${connected?'Connected':correctProject?'Awaiting project':'Choose demo project'}</h3><p>${escapeHTML(correctProject?(current?.status?.detail || definition.project):`Selected: ${current?.project || 'not connected'}`)}</p><small>${escapeHTML(definition.project)}</small></article><article class="demo-readiness-card"><span class="eyebrow">REQUIRED SKILLS</span><h3>${skills.known?skills.loaded+' / 8 loaded':'Not checked'}</h3><p>Eight core file-reading skills. Dam readout is optional.</p><small>Loaded status is not an execution result.</small></article><article class="demo-readiness-card"><span class="eyebrow">KNOWLEDGE BASE</span><h3>${kbKnown?`${knowledge.ready_count ?? '—'} / ${knowledge.count} indexes ready`:'Not checked'}</h3><p>${coverage.known?`${coverage.listed} / 6 lead sources listed`:'Lead-source coverage is unverified.'}</p><small>Index readiness and required-source coverage are checked separately.</small></article>`;
     if($('#required-skills'))$('#required-skills').innerHTML=definition.requiredSkills.map((skill,i)=>`<div class="demo-skill-row"><div><strong>${escapeHTML(skill.id)}</strong><p>${escapeHTML(skill.description)}</p></div><span class="demo-badge ${skills.required[i].state}">${escapeHTML(skills.required[i].state==='loaded'?'Loaded':skills.required[i].state==='missing'?'Missing':'Unknown')}</span></div>`).join('')+`<div class="demo-skill-row demo-optional-skill"><div><strong>dam.readout</strong><p>Optional; excluded from the eight core skills.</p></div><span class="demo-badge">${escapeHTML(skills.optional==='loaded'?'Loaded · optional':skills.optional==='missing'?'Not loaded · optional':'Unknown · optional')}</span></div>`;
     if($('#demo-sources'))$('#demo-sources').innerHTML=`<p class="demo-source-note">${escapeHTML(knowledge?.detail || 'Connect the demo project to inspect its knowledge-base indexing status.')} Source links below are project references; a link alone does not mean it is indexed.</p><ul class="demo-source-list">${coverage.rows.map(({source,state})=>`<li><a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a><span class="demo-badge">${escapeHTML(state==='listed-ready-index'?'Listed · index ready':state==='listed'?'Listed · index not ready':state==='not-listed'?'Not confirmed in index':'Coverage unknown')}</span></li>`).join('')}</ul>`;
   }
@@ -186,11 +189,18 @@
     if(!definition || !matchesCase(definition.case) || definition.project!=='Water4Energy-TVA-agent-loop')throw new Error('The fixed TVA demo definition is invalid.');
     renderEvidence();renderQuestions();buildDam();renderReadiness();
   }
+  function updateCapabilities(next) {
+    if(!options||!definition)return null;
+    const matchingProject=next?.project===definition.project;
+    capabilities={project:next?.project,status:next?.status,skills:matchingProject?next?.skills:null,knowledge:matchingProject?next?.knowledge:null,backend:next?.backend};
+    renderReadiness();
+    return skillReadiness(capabilities.skills,definition.project);
+  }
   async function refresh(next) {
     if(!options)return null;
     const id=++revision,outputBase=options.projectUrl('/outputs');
     context={...next,outputBase};evidence=null;damState.source=null;damState.sourceName=null;
-    renderReadiness();renderDamResult();
+    updateCapabilities(next);renderDamResult();
     if(next.project!==definition.project || !next.status?.project_found) {
       renderEvidence(next.project!==definition.project?'Select Water4Energy-TVA-agent-loop in Connection settings to inspect this demo’s case files.':'Connect the named VISTA project to load its case evidence.');
       return {matched:false,reason:'project-unavailable',researchLinks:[],caseFigures:[]};
@@ -221,7 +231,7 @@
       return {matched:false,reason:'read-failed',researchLinks:[],caseFigures:[]};
     }
   }
-  const api={init,refresh,reset,validPath,matchesCase,dateInCase,validateManifest,skillReadiness,knowledgeCoverage,validateDamReadout,sourceMatches,manifestInstructions};
+  const api={init,refresh,reset,updateCapabilities,validPath,matchesCase,dateInCase,validateManifest,skillReadiness,knowledgeCoverage,validateDamReadout,sourceMatches,manifestInstructions};
   global.TVAHypothesisDemo=api;
   if(typeof module!=='undefined' && module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
