@@ -2,7 +2,15 @@
 
 A project interface for explaining how weather-model research informs water and energy questions. It opens on **HEADWATER development**, keeps chat on the left, and places the selected workflow or evidence on the right. [VISTA](https://github.com/Genesis-VISTA/vista) supplies the agent, project storage and model connection.
 
-## Launch this repository checkout
+## Full runnable Mac package
+
+[Download Water4Energy-Workbench-v0.15.1-All-in-One-Mac.zip](../packages/v0.15.1/Water4Energy-Workbench-v0.15.1-All-in-One-Mac.zip?raw=true) · [SHA256 checksum](../packages/v0.15.1/Water4Energy-Workbench-v0.15.1-All-in-One-Mac.zip.sha256)
+
+Extract the ZIP, open **TVA-Workbench**, then double-click **Start TVA Workbench.command**. Keep Terminal open and follow the printed local URL. The ZIP includes the interface, VISTA project setup, skills, source references and saved evidence; no separate backend bundle is needed. Install VISTA and configure your own model/provider credentials in VISTA Settings before live chat. Keep the complete extracted folder together.
+
+This is the exact published v0.15.1 archive, included in this repository under **packages/v0.15.1/**. See the [package instructions](../packages/v0.15.1/README.md) for details.
+
+## Launch the source checkout
 
 1. Open **Water4Energy-Workbench**.
 2. Double-click **Start TVA Workbench.command** on macOS. Keep its Terminal window open. Windows uses **Start TVA Workbench.bat**; Linux uses `sh start.sh`.
@@ -12,7 +20,7 @@ Python 3.9+ is required; the Mac launcher can use VISTA's bundled Python. No fro
 
 This public checkout is the **interface source distribution**. It opens without creating or changing a VISTA project. For live conversation, open VISTA, configure your own model provider, and use **Connection settings** to connect to `http://127.0.0.1:8001` and project **Water4Energy-TVA-agent-loop**. Missing skills and saved figures are reported in the interface.
 
-The authorized combined ZIP remains the supported way to install the saved-evidence backend: extract that complete ZIP and use its single launcher. This repository does not include private research snapshots, skill reference bundles, migration archives, evidence archives, paper PDFs or credentials. Do not copy those materials into a public commit. An unmanifested local backend folder is not automatically installed. See [VISTA_SETUP.md](VISTA_SETUP.md) for the project and evidence contracts.
+The source folder omits the backend research payload. The complete ZIP linked above includes the reference bundles, setup/migration files and saved evidence, and is the supported backend-installation path. An unmanifested backend folder copied into the source checkout is not automatically installed. See [VISTA_SETUP.md](VISTA_SETUP.md) for the project and evidence contracts.
 
 ## Follow the workflow
 

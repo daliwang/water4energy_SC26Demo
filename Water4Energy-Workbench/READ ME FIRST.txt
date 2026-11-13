@@ -7,7 +7,9 @@ This checkout opens the interface without changing the local VISTA backend.
 For live chat, open VISTA, configure your own model provider, and connect to
 Water4Energy-TVA-agent-loop in Connection settings.
 
-The public repository does not contain private research/evidence bundles.
-For backend installation, use the full authorized combined ZIP and its launcher.
+The complete Mac package is in ../packages/v0.15.1/.
+Download Water4Energy-Workbench-v0.15.1-All-in-One-Mac.zip and extract it.
+Open TVA-Workbench and use its Start TVA Workbench.command launcher for
+the interface plus VISTA backend setup; no separate setup bundle is needed.
 
 See README.md and VISTA_SETUP.md for details.
